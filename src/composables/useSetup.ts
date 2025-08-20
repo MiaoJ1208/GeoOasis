@@ -134,10 +134,11 @@ export const useSetup = () => {
             handleCanvasLeftUp,
             ScreenSpaceEventType.LEFT_UP
         );
-        handler.setInputAction(
-            handleCanvasMouseMove,
-            ScreenSpaceEventType.MOUSE_MOVE
-        );
+        // 注释掉鼠标移动事件监听器以取消获取鼠标坐标功能
+        // handler.setInputAction(
+        //     handleCanvasMouseMove,
+        //     ScreenSpaceEventType.MOUSE_MOVE
+        // );
         handler.setInputAction(
             handleCanvasRightClick,
             ScreenSpaceEventType.RIGHT_CLICK
@@ -358,15 +359,16 @@ export const useSetup = () => {
         const endGlobePos = viewer.scene.pickPosition(motionEvent.endPosition);
         if (!startGlobePos || !endGlobePos) return;
 
-        Cartographic.fromCartesian(endGlobePos, undefined, scratchCartographic);
+        // 注释掉坐标更新逻辑以取消获取鼠标坐标功能
+        // Cartographic.fromCartesian(endGlobePos, undefined, scratchCartographic);
 
-        cursorPosition.value.lng = CesiumMath.toDegrees(
-            scratchCartographic.longitude
-        ).toFixed(6);
-        cursorPosition.value.lat = CesiumMath.toDegrees(
-            scratchCartographic.latitude
-        ).toFixed(6);
-        cursorPosition.value.height = scratchCartographic.height.toFixed(6);
+        // cursorPosition.value.lng = Number(CesiumMath.toDegrees(
+        //     scratchCartographic.longitude
+        // ).toFixed(6));
+        // cursorPosition.value.lat = Number(CesiumMath.toDegrees(
+        //     scratchCartographic.latitude
+        // ).toFixed(6));
+        // cursorPosition.value.height = Number(scratchCartographic.height.toFixed(6));
 
         endPoint = endGlobePos;
         // drag element logic

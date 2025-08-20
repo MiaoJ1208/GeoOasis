@@ -1,4 +1,5 @@
 import { onMounted, watch, ShallowRef } from "vue";
+import { BoundingSphere, Cartesian3 } from "cesium";
 import { storeToRefs } from "pinia";
 import * as Y from "yjs";
 import { useGeoOasisStore } from "../store/GeoOasis.store";
@@ -31,7 +32,14 @@ export const useLayersBar = () => {
     const handleSelect = (id: string) => {
         selectedElement.value = editor.getElement(id);
         selectedLayer.value = editor.getLayer(id);
-        // console.log(selectedElement.value, selectedLayer.value);
+        // 当点击的是元素时，飞到该元素所在位置
+        if (selectedElement.value && selectedElement.value.positions?.length) {
+            const cartesians = selectedElement.value.positions.map((p) =>
+                Cartesian3.fromElements(p.x, p.y, p.z)
+            );
+            const sphere = BoundingSphere.fromPoints(cartesians);
+            editor.viewer?.camera.flyToBoundingSphere(sphere, { duration: 1.5 });
+        }
     };
 
     const handleDelete = (id: string) => {

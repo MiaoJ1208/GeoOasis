@@ -20,14 +20,13 @@ const customHeightmapHeight = 32;
 const customHeightmapProvider = new CustomHeightmapTerrainProvider({
     width: customHeightmapWidth,
     height: customHeightmapHeight,
-    callback: function (x, y, level) {
+    callback: function (_x, y, level) {
         const width = customHeightmapWidth;
         const height = customHeightmapHeight;
         const buffer = new Float32Array(width * height);
 
         for (let yy = 0; yy < height; yy++) {
             for (let xx = 0; xx < width; xx++) {
-                const u = (x + xx / (width - 1)) / Math.pow(2, level);
                 const v = (y + yy / (height - 1)) / Math.pow(2, level);
 
                 const heightValue = 4000 * (Math.sin(8000 * v) * 0.5 + 0.5);

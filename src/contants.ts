@@ -1,2 +1,2 @@
 export const Hocuspocus_URL = "ws://localhost:3001/collab";
-export const CesiumIonDefaultToken = "your cesium ion token";
+export const CesiumIonDefaultToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI5Y2Q5YTFmMC1hYjQyLTQxMGUtYjk2OS0wMGZhZWQ2MjkwMGUiLCJpZCI6MzA2NjkyLCJpYXQiOjE3NDgzNDA4NjR9.TFb-m0JmuuWsxVxcLO2204MZAImyoorZKo45Kgv73jk";

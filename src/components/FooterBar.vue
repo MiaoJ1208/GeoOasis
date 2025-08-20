@@ -1,15 +1,16 @@
 <script setup lang="ts">
 import { useSceneHelper } from "../composables/useSceneHelper";
-const { cursorPosition, flyToHome } = useSceneHelper();
+const { flyToHome } = useSceneHelper();
 </script>
 
 <template>
     <div class="footerbar">
-        <div class="infobar">
+        <!-- 注释掉坐标显示以取消获取鼠标坐标功能 -->
+        <!-- <div class="infobar">
             <div class="info">Lng: {{ cursorPosition.lng }}</div>
             <div class="info">Lat: {{ cursorPosition.lat }}</div>
             <div class="info">Height: {{ cursorPosition.height }}</div>
-        </div>
+        </div> -->
         <div class="home" @click="flyToHome">Home</div>
     </div>
 </template>

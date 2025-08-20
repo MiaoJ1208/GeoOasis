@@ -6,7 +6,8 @@ import { useGeoOasisStore } from "../store/GeoOasis.store";
 export const useSceneHelper = () => {
     const store = useGeoOasisStore();
 
-    const { cursorPosition } = storeToRefs(store);
+    // 注释掉 cursorPosition 以取消获取鼠标坐标功能
+    // const { cursorPosition } = storeToRefs(store);
 
     const flyToHome = () => {
         store.editor.viewer?.camera.flyTo({
@@ -42,5 +43,5 @@ export const useSceneHelper = () => {
         });
     };
 
-    return { cursorPosition, flyToHome, synOtherUserCamera };
+    return { flyToHome, synOtherUserCamera };
 };

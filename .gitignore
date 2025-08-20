@@ -15,6 +15,7 @@ dev-dist
 *.local
 trash
 certs
+src/constants.ts
 
 # Editor directories and files
 .vscode/*
