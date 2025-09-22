@@ -4,6 +4,7 @@ import AppHeader from "./components/AppHeader.vue";
 import FooterBar from "./components/FooterBar.vue";
 import LayersBar from "./components/LayersBar.vue";
 import InfoPanel from "./components/InfoPanel.vue";
+import RoadVisual from "./components/RoadVisual.vue";
 </script>
 
 <template>
@@ -12,6 +13,7 @@ import InfoPanel from "./components/InfoPanel.vue";
             <AppHeader />
             <LayersBar />
             <InfoPanel />
+            <RoadVisual />
             <FooterBar />
         </Editor>
     </div>
