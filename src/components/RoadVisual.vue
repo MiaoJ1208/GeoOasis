@@ -21,62 +21,6 @@ const { editor } = store;
 let viewer: Cesium.Viewer | null = null;
 const roadEntities: Cesium.Entity[] = [];
 
-// 计算路网的边界
-const calculateBounds = (features: RoadFeature[]) => {
-    let minLng = Infinity;
-    let maxLng = -Infinity;
-    let minLat = Infinity;
-    let maxLat = -Infinity;
-
-    features.forEach((feature) => {
-        feature.geometry.coordinates.forEach((coord) => {
-            minLng = Math.min(minLng, coord[0]);
-            maxLng = Math.max(maxLng, coord[0]);
-            minLat = Math.min(minLat, coord[1]);
-            maxLat = Math.max(maxLat, coord[1]);
-        });
-    });
-
-    return {
-        minLng,
-        maxLng,
-        minLat,
-        maxLat
-    };
-};
-
-// // 定位到路网
-// const flyToRoadNetwork = (features: RoadFeature[]) => {
-//     if (!viewer) {
-//         console.error("Viewer is not initialized");
-//         return;
-//     }
-
-//     const bounds = calculateBounds(features);
-//     const centerLng = (bounds.minLng + bounds.maxLng) / 2;
-//     const centerLat = (bounds.minLat + bounds.maxLat) / 2;
-
-//     // 计算合适的缩放级别
-//     const lngDiff = bounds.maxLng - bounds.minLng;
-//     const latDiff = bounds.maxLat - bounds.minLat;
-//     const maxDiff = Math.max(lngDiff, latDiff);
-//     const zoomLevel = Math.log2(360 / maxDiff) - 1;
-
-//     viewer.camera.flyTo({
-//         destination: Cesium.Cartesian3.fromDegrees(
-//             centerLng,
-//             centerLat,
-//             zoomLevel * 10000
-//         ),
-//         orientation: {
-//             heading: Cesium.Math.toRadians(0),
-//             pitch: Cesium.Math.toRadians(-60),
-//             roll: 0.0
-//         },
-//         duration: 2
-//     });
-// };
-
 // 加载GeoJSON数据
 const loadGeoJSON = async (url: string) => {
     try {
