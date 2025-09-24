@@ -12,19 +12,14 @@ export type Asset = {
 
 export const defaultAsset: Asset[] = [
     {
-        id: "asset-0",
-        name: "sign",
-        url: "sign.glb"
-    },
-    {
-        id: "asset-1",
-        name: "car",
-        url: "car.glb"
-    },
-    {
         id: "asset-2",
         name: "airplane",
         url: "Cesium_Air.glb"
+    },
+    {
+        id: "asset-3",
+        name: "road",
+        url: "road_hd/road_hd/scene.gltf"
     }
 ];
 
