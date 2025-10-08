@@ -5,15 +5,20 @@ import FooterBar from "./components/FooterBar.vue";
 import LayersBar from "./components/LayersBar.vue";
 import InfoPanel from "./components/InfoPanel.vue";
 import RoadVisual from "./components/RoadVisual.vue";
+import { ref } from "vue";
+const roadVisualRef = ref();
+function onLoadRoad() {
+    roadVisualRef.value?.loadRoadData();
+}
 </script>
 
 <template>
     <div class="geoasis-app">
         <Editor>
             <AppHeader />
-            <LayersBar />
+            <LayersBar @load-road="onLoadRoad" />
             <InfoPanel />
-            <RoadVisual />
+            <RoadVisual ref="roadVisualRef" />
             <FooterBar />
         </Editor>
     </div>

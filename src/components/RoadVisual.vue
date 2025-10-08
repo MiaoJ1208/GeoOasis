@@ -34,7 +34,7 @@ const loadGeoJSON = async (url: string) => {
         data.geometries.forEach((geometry: any) => {
             if (geometry.type === "LineString") {
                 const coordinates = geometry.coordinates;
-                const positions = coordinates.map((coord) =>
+                const positions = coordinates.map((coord: any) =>
                     Cesium.Cartesian3.fromDegrees(coord[0], coord[1], 0)
                 );
                 const entity = viewer?.entities.add({
@@ -62,17 +62,18 @@ const loadGeoJSON = async (url: string) => {
     }
 };
 
-onMounted(async () => {
-    viewer = editor?.viewer || null;
-    if (!viewer) {
-        console.error("Cesium Viewer is not available");
-        return;
+function loadRoadData() {
+    if (editor && editor.viewer) {
+        viewer = editor.viewer;
+        // GeoJSON文件URL
+        const geoJsonUrl = "./data/roadCity.json";
+        loadGeoJSON(geoJsonUrl);
+    } else {
+        console.error("Editor or Viewer is not available");
     }
+}
 
-    // GeoJSON文件URL
-    const geoJsonUrl = "./data/roadCity.json";
-    await loadGeoJSON(geoJsonUrl);
-});
+defineExpose({ loadRoadData });
 </script>
 
 <style scoped></style>

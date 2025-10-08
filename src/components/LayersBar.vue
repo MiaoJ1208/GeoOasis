@@ -36,7 +36,7 @@ const {
 
 <template>
     <div class="layersbar">
-       <!-- 影像图层 -->
+        <!-- 影像图层 -->
         <h3>Imagery Layers</h3>
         <Label>BaseLayer:</Label>
         <Select
@@ -56,7 +56,7 @@ const {
         <LayerBarItem
             type="layer"
             v-for="(e, index) in imageryLayersArray"
-            :key="(e.get('id') as string)"
+            :key="e.get('id') as string"
             :index="index"
             :item="e"
             @handle-select="handleSelect"
@@ -77,14 +77,20 @@ const {
         <LayerBarItem
             type="element"
             v-for="e in elementArray"
-            :key="(e.get('id') as string)"
+            :key="e.get('id') as string"
             :item="e"
             @handle-select="handleSelect"
             @handle-delete="handleDelete"
         />
-         <!-- 坐标定位功能 -->
         <Separator />
-         <div class="coordinate-navigation">
+        <div>
+            <Button @click="$emit('load-road')">
+                <Icon icon="material-symbols:location-on" />
+                加载道路数据
+            </Button>
+        </div>
+        <!-- 坐标定位功能 -->
+        <div class="coordinate-navigation">
             <h3 class="section-title">坐标定位</h3>
             <div class="coordinate-input-group">
                 <Label class="LabelRoot" for="longitude">经度:</Label>
@@ -136,11 +142,9 @@ const {
                 {{ errorMessage }}
             </div>
         </div>
-        
+
         <Separator />
-    
     </div>
-           
 </template>
 
 <style scoped>
