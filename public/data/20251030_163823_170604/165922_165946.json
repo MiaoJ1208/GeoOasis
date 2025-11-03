@@ -1,0 +1,2599 @@
+[{
+  "altitude": "629.0",
+  "angle": 46.58060916659042,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "2",
+  "ifSpecial": false,
+  "latitude": "40.44248",
+  "longitude": "117.481886",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀H00E77",
+  "radarCode": "578062943485",
+  "receiveTime": "2025-10-30 16:59:23.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:22.000",
+  "timeStamp": {
+    "$numberLong": "1761814762000"
+  },
+  "velocity": 91.4
+},
+{
+  "altitude": "629.0",
+  "angle": 46.15535894271056,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "2",
+  "ifSpecial": false,
+  "latitude": "40.442643",
+  "longitude": "117.482115",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀HXT177",
+  "radarCode": "578062957121",
+  "receiveTime": "2025-10-30 16:59:23.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:22.000",
+  "timeStamp": {
+    "$numberLong": "1761814762000"
+  },
+  "velocity": 83.2
+},
+{
+  "altitude": "628.0",
+  "angle": 44.334157668247315,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.443075",
+  "longitude": "117.482686",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀BD66V3",
+  "radarCode": "578062943469",
+  "receiveTime": "2025-10-30 16:59:23.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:22.000",
+  "timeStamp": {
+    "$numberLong": "1761814762000"
+  },
+  "velocity": 82.8
+},
+{
+  "altitude": "631.0",
+  "angle": 47.89450153631708,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.442011",
+  "longitude": "117.481206",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀H3129F",
+  "radarCode": "314040064163",
+  "receiveTime": "2025-10-30 16:59:24.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:22.000",
+  "timeStamp": {
+    "$numberLong": "1761814762000"
+  },
+  "velocity": 84.2
+},
+{
+  "altitude": "646.0",
+  "angle": 44.590248003557974,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.442412",
+  "longitude": "117.482051",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀H85217",
+  "radarCode": "314070064304",
+  "receiveTime": "2025-10-30 16:59:25.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:22.000",
+  "timeStamp": {
+    "$numberLong": "1761814762000"
+  },
+  "velocity": 83.8
+},
+{
+  "altitude": "620.0",
+  "angle": 43.81148663792095,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.443176",
+  "longitude": "117.482759",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀B00Q8D",
+  "radarCode": "314070064718",
+  "receiveTime": "2025-10-30 16:59:25.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:22.000",
+  "timeStamp": {
+    "$numberLong": "1761814762000"
+  },
+  "velocity": 78.8
+},
+{
+  "altitude": "629.0",
+  "angle": 46.41752179183436,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "2",
+  "ifSpecial": false,
+  "latitude": "40.442635",
+  "longitude": "117.4821",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀H00E77",
+  "radarCode": "578062943485",
+  "receiveTime": "2025-10-30 16:59:24.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:23.000",
+  "timeStamp": {
+    "$numberLong": "1761814763000"
+  },
+  "velocity": 90
+},
+{
+  "altitude": "628.0",
+  "angle": 45.760371635857325,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "2",
+  "ifSpecial": false,
+  "latitude": "40.442789",
+  "longitude": "117.482312",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀HXT177",
+  "radarCode": "578062957121",
+  "receiveTime": "2025-10-30 16:59:24.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:23.000",
+  "timeStamp": {
+    "$numberLong": "1761814763000"
+  },
+  "velocity": 83.8
+},
+{
+  "altitude": "628.0",
+  "angle": 43.494243486912126,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.443225",
+  "longitude": "117.482873",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀BD66V3",
+  "radarCode": "578062943469",
+  "receiveTime": "2025-10-30 16:59:24.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:23.000",
+  "timeStamp": {
+    "$numberLong": "1761814763000"
+  },
+  "velocity": 82.8
+},
+{
+  "altitude": "631.0",
+  "angle": 47.64780661473753,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.442156",
+  "longitude": "117.481415",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀H3129F",
+  "radarCode": "314040064163",
+  "receiveTime": "2025-10-30 16:59:25.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:23.000",
+  "timeStamp": {
+    "$numberLong": "1761814763000"
+  },
+  "velocity": 86.2
+},
+{
+  "altitude": "620.0",
+  "angle": 42.92801674870225,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.44332",
+  "longitude": "117.482935",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀B00Q8D",
+  "radarCode": "314070064718",
+  "receiveTime": "2025-10-30 16:59:26.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:23.000",
+  "timeStamp": {
+    "$numberLong": "1761814763000"
+  },
+  "velocity": 78.7
+},
+{
+  "altitude": "629.0",
+  "angle": 45.87735642743502,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "2",
+  "ifSpecial": false,
+  "latitude": "40.44279",
+  "longitude": "117.48231",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀H00E77",
+  "radarCode": "578062943485",
+  "receiveTime": "2025-10-30 16:59:25.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:24.000",
+  "timeStamp": {
+    "$numberLong": "1761814764000"
+  },
+  "velocity": 89.1
+},
+{
+  "altitude": "628.0",
+  "angle": 44.885382069783304,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "2",
+  "ifSpecial": false,
+  "latitude": "40.442938",
+  "longitude": "117.482507",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀HXT177",
+  "radarCode": "578062957121",
+  "receiveTime": "2025-10-30 16:59:25.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:24.000",
+  "timeStamp": {
+    "$numberLong": "1761814764000"
+  },
+  "velocity": 84.2
+},
+{
+  "altitude": "628.0",
+  "angle": 42.466174302211016,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.443378",
+  "longitude": "117.483057",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀BD66V3",
+  "radarCode": "578062943469",
+  "receiveTime": "2025-10-30 16:59:25.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:24.000",
+  "timeStamp": {
+    "$numberLong": "1761814764000"
+  },
+  "velocity": 83
+},
+{
+  "altitude": "630.0",
+  "angle": 47.43265766961798,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.4423",
+  "longitude": "117.481621",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀H3129F",
+  "radarCode": "314040064163",
+  "receiveTime": "2025-10-30 16:59:26.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:24.000",
+  "timeStamp": {
+    "$numberLong": "1761814764000"
+  },
+  "velocity": 85.2
+},
+{
+  "altitude": "644.0",
+  "angle": 43.0144219841884,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.442713",
+  "longitude": "117.48242",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀H85217",
+  "radarCode": "314070064304",
+  "receiveTime": "2025-10-30 16:59:27.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:24.000",
+  "timeStamp": {
+    "$numberLong": "1761814764000"
+  },
+  "velocity": 82.4
+},
+{
+  "altitude": "620.0",
+  "angle": 42.208019397204794,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.443466",
+  "longitude": "117.483109",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀B00Q8D",
+  "radarCode": "314070064718",
+  "receiveTime": "2025-10-30 16:59:27.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:24.000",
+  "timeStamp": {
+    "$numberLong": "1761814764000"
+  },
+  "velocity": 78.9
+},
+{
+  "altitude": "629.0",
+  "angle": 45.23241931404664,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "2",
+  "ifSpecial": false,
+  "latitude": "40.442944",
+  "longitude": "117.482514",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀H00E77",
+  "radarCode": "578062943485",
+  "receiveTime": "2025-10-30 16:59:26.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:25.000",
+  "timeStamp": {
+    "$numberLong": "1761814765000"
+  },
+  "velocity": 87.5
+},
+{
+  "altitude": "628.0",
+  "angle": 44.167071859093085,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "2",
+  "ifSpecial": false,
+  "latitude": "40.44309",
+  "longitude": "117.482701",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀HXT177",
+  "radarCode": "578062957121",
+  "receiveTime": "2025-10-30 16:59:26.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:25.000",
+  "timeStamp": {
+    "$numberLong": "1761814765000"
+  },
+  "velocity": 84.8
+},
+{
+  "altitude": "628.0",
+  "angle": 41.47006098168066,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.443533",
+  "longitude": "117.483237",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀BD66V3",
+  "radarCode": "578062943469",
+  "receiveTime": "2025-10-30 16:59:26.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:25.000",
+  "timeStamp": {
+    "$numberLong": "1761814765000"
+  },
+  "velocity": 82.8
+},
+{
+  "altitude": "630.0",
+  "angle": 46.73055861373257,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.442444",
+  "longitude": "117.481822",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀H3129F",
+  "radarCode": "314040064163",
+  "receiveTime": "2025-10-30 16:59:27.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:25.000",
+  "timeStamp": {
+    "$numberLong": "1761814765000"
+  },
+  "velocity": 84.1
+},
+{
+  "altitude": "621.0",
+  "angle": 40.80068349151907,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.443615",
+  "longitude": "117.483278",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀B00Q8D",
+  "radarCode": "314070064718",
+  "receiveTime": "2025-10-30 16:59:28.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:25.000",
+  "timeStamp": {
+    "$numberLong": "1761814765000"
+  },
+  "velocity": 78.8
+},
+{
+  "altitude": "629.0",
+  "angle": 44.23217311513781,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "2",
+  "ifSpecial": false,
+  "latitude": "40.443098",
+  "longitude": "117.482711",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀H00E77",
+  "radarCode": "578062943485",
+  "receiveTime": "2025-10-30 16:59:27.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:26.000",
+  "timeStamp": {
+    "$numberLong": "1761814766000"
+  },
+  "velocity": 86
+},
+{
+  "altitude": "628.0",
+  "angle": 43.31108540039526,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "2",
+  "ifSpecial": false,
+  "latitude": "40.443245",
+  "longitude": "117.482893",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀HXT177",
+  "radarCode": "578062957121",
+  "receiveTime": "2025-10-30 16:59:27.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:26.000",
+  "timeStamp": {
+    "$numberLong": "1761814766000"
+  },
+  "velocity": 85.3
+},
+{
+  "altitude": "628.0",
+  "angle": 40.449618100516886,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.443691",
+  "longitude": "117.483414",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀BD66V3",
+  "radarCode": "578062943469",
+  "receiveTime": "2025-10-30 16:59:27.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:26.000",
+  "timeStamp": {
+    "$numberLong": "1761814766000"
+  },
+  "velocity": 83.1
+},
+{
+  "altitude": "630.0",
+  "angle": 46.33591632367438,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.44259",
+  "longitude": "117.482023",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀H3129F",
+  "radarCode": "314040064163",
+  "receiveTime": "2025-10-30 16:59:28.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:26.000",
+  "timeStamp": {
+    "$numberLong": "1761814766000"
+  },
+  "velocity": 84.6
+},
+{
+  "altitude": "641.0",
+  "angle": 43.41564524077097,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.443009",
+  "longitude": "117.482788",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀H85217",
+  "radarCode": "314070064304",
+  "receiveTime": "2025-10-30 16:59:29.556",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:26.000",
+  "timeStamp": {
+    "$numberLong": "1761814766000"
+  },
+  "velocity": 81.6
+},
+{
+  "altitude": "621.0",
+  "angle": 40.10476302795149,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.443765",
+  "longitude": "117.483444",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀B00Q8D",
+  "radarCode": "314070064718",
+  "receiveTime": "2025-10-30 16:59:29.556",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:26.000",
+  "timeStamp": {
+    "$numberLong": "1761814766000"
+  },
+  "velocity": 78.5
+},
+{
+  "altitude": "628.0",
+  "angle": 43.60850205740928,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "2",
+  "ifSpecial": false,
+  "latitude": "40.443249",
+  "longitude": "117.4829",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀H00E77",
+  "radarCode": "578062943485",
+  "receiveTime": "2025-10-30 16:59:28.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:27.000",
+  "timeStamp": {
+    "$numberLong": "1761814767000"
+  },
+  "velocity": 83.5
+},
+{
+  "altitude": "628.0",
+  "angle": 42.464199621725584,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "2",
+  "ifSpecial": false,
+  "latitude": "40.443403",
+  "longitude": "117.483083",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀HXT177",
+  "radarCode": "578062957121",
+  "receiveTime": "2025-10-30 16:59:28.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:27.000",
+  "timeStamp": {
+    "$numberLong": "1761814767000"
+  },
+  "velocity": 85.7
+},
+{
+  "altitude": "627.0",
+  "angle": 39.28726976253603,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.443851",
+  "longitude": "117.483586",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀BD66V3",
+  "radarCode": "578062943469",
+  "receiveTime": "2025-10-30 16:59:28.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:27.000",
+  "timeStamp": {
+    "$numberLong": "1761814767000"
+  },
+  "velocity": 82.8
+},
+{
+  "altitude": "629.0",
+  "angle": 46.02500009567484,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.442742",
+  "longitude": "117.48223",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀H3129F",
+  "radarCode": "314040064163",
+  "receiveTime": "2025-10-30 16:59:29.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:27.000",
+  "timeStamp": {
+    "$numberLong": "1761814767000"
+  },
+  "velocity": 87.6
+},
+{
+  "altitude": "621.0",
+  "angle": 39.03451502528827,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.443918",
+  "longitude": "117.483607",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀B00Q8D",
+  "radarCode": "314070064718",
+  "receiveTime": "2025-10-30 16:59:30.556",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:27.000",
+  "timeStamp": {
+    "$numberLong": "1761814767000"
+  },
+  "velocity": 78.8
+},
+{
+  "altitude": "628.0",
+  "angle": 42.753156899427495,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "2",
+  "ifSpecial": false,
+  "latitude": "40.443398",
+  "longitude": "117.483081",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀H00E77",
+  "radarCode": "578062943485",
+  "receiveTime": "2025-10-30 16:59:29.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:28.000",
+  "timeStamp": {
+    "$numberLong": "1761814768000"
+  },
+  "velocity": 81.2
+},
+{
+  "altitude": "628.0",
+  "angle": 41.32255592683265,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "2",
+  "ifSpecial": false,
+  "latitude": "40.443564",
+  "longitude": "117.483269",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀HXT177",
+  "radarCode": "578062957121",
+  "receiveTime": "2025-10-30 16:59:29.556",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:28.000",
+  "timeStamp": {
+    "$numberLong": "1761814768000"
+  },
+  "velocity": 85.8
+},
+{
+  "altitude": "627.0",
+  "angle": 38.28143025465323,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.444013",
+  "longitude": "117.483754",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀BD66V3",
+  "radarCode": "578062943469",
+  "receiveTime": "2025-10-30 16:59:29.556",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:28.000",
+  "timeStamp": {
+    "$numberLong": "1761814768000"
+  },
+  "velocity": 82.6
+},
+{
+  "altitude": "629.0",
+  "angle": 45.64620154519116,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.442899",
+  "longitude": "117.482441",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀H3129F",
+  "radarCode": "314040064163",
+  "receiveTime": "2025-10-30 16:59:30.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:28.000",
+  "timeStamp": {
+    "$numberLong": "1761814768000"
+  },
+  "velocity": 89.9
+},
+{
+  "altitude": "637.0",
+  "angle": 43.356441619075724,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.443304",
+  "longitude": "117.483154",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀H85217",
+  "radarCode": "314070064304",
+  "receiveTime": "2025-10-30 16:59:31.556",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:28.000",
+  "timeStamp": {
+    "$numberLong": "1761814768000"
+  },
+  "velocity": 81.2
+},
+{
+  "altitude": "621.0",
+  "angle": 37.803193766633,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.444073",
+  "longitude": "117.483765",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀B00Q8D",
+  "radarCode": "314070064718",
+  "receiveTime": "2025-10-30 16:59:31.556",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:28.000",
+  "timeStamp": {
+    "$numberLong": "1761814768000"
+  },
+  "velocity": 78.5
+},
+{
+  "altitude": "628.0",
+  "angle": 41.820330740896,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "2",
+  "ifSpecial": false,
+  "latitude": "40.443546",
+  "longitude": "117.483255",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀H00E77",
+  "radarCode": "578062943485",
+  "receiveTime": "2025-10-30 16:59:30.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:29.000",
+  "timeStamp": {
+    "$numberLong": "1761814769000"
+  },
+  "velocity": 79.5
+},
+{
+  "altitude": "628.0",
+  "angle": 40.20062874811782,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "2",
+  "ifSpecial": false,
+  "latitude": "40.443727",
+  "longitude": "117.48345",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀HXT177",
+  "radarCode": "578062957121",
+  "receiveTime": "2025-10-30 16:59:30.556",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:29.000",
+  "timeStamp": {
+    "$numberLong": "1761814769000"
+  },
+  "velocity": 85.4
+},
+{
+  "altitude": "627.0",
+  "angle": 37.2725070550037,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.444177",
+  "longitude": "117.483918",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀BD66V3",
+  "radarCode": "578062943469",
+  "receiveTime": "2025-10-30 16:59:30.556",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:29.000",
+  "timeStamp": {
+    "$numberLong": "1761814769000"
+  },
+  "velocity": 82.5
+},
+{
+  "altitude": "629.0",
+  "angle": 45.19145738316075,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.443057",
+  "longitude": "117.48265",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀H3129F",
+  "radarCode": "314040064163",
+  "receiveTime": "2025-10-30 16:59:31.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:29.000",
+  "timeStamp": {
+    "$numberLong": "1761814769000"
+  },
+  "velocity": 89.7
+},
+{
+  "altitude": "621.0",
+  "angle": 36.388499441508884,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.444231",
+  "longitude": "117.483918",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀B00Q8D",
+  "radarCode": "314070064718",
+  "receiveTime": "2025-10-30 16:59:32.556",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:29.000",
+  "timeStamp": {
+    "$numberLong": "1761814769000"
+  },
+  "velocity": 78.6
+},
+{
+  "altitude": "628.0",
+  "angle": 40.463558472945635,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "2",
+  "ifSpecial": false,
+  "latitude": "40.443695",
+  "longitude": "117.483422",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀H00E77",
+  "radarCode": "578062943485",
+  "receiveTime": "2025-10-30 16:59:31.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:30.000",
+  "timeStamp": {
+    "$numberLong": "1761814770000"
+  },
+  "velocity": 78.4
+},
+{
+  "altitude": "628.0",
+  "angle": 39.07958228306387,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "2",
+  "ifSpecial": false,
+  "latitude": "40.443891",
+  "longitude": "117.483625",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀HXT177",
+  "radarCode": "578062957121",
+  "receiveTime": "2025-10-30 16:59:31.556",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:30.000",
+  "timeStamp": {
+    "$numberLong": "1761814770000"
+  },
+  "velocity": 84.6
+},
+{
+  "altitude": "627.0",
+  "angle": 35.745396307057035,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.444343",
+  "longitude": "117.484075",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀BD66V3",
+  "radarCode": "578062943469",
+  "receiveTime": "2025-10-30 16:59:31.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:30.000",
+  "timeStamp": {
+    "$numberLong": "1761814770000"
+  },
+  "velocity": 81.9
+},
+{
+  "altitude": "628.0",
+  "angle": 44.356983847938864,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.443215",
+  "longitude": "117.482853",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀H3129F",
+  "radarCode": "314040064163",
+  "receiveTime": "2025-10-30 16:59:32.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:30.000",
+  "timeStamp": {
+    "$numberLong": "1761814770000"
+  },
+  "velocity": 88.5
+},
+{
+  "altitude": "634.0",
+  "angle": 40.85397461147659,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.443612",
+  "longitude": "117.483504",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀H85217",
+  "radarCode": "314070064304",
+  "receiveTime": "2025-10-30 16:59:33.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:30.000",
+  "timeStamp": {
+    "$numberLong": "1761814770000"
+  },
+  "velocity": 81.5
+},
+{
+  "altitude": "621.0",
+  "angle": 35.49538785652061,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.44439",
+  "longitude": "117.484067",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀B00Q8D",
+  "radarCode": "314070064718",
+  "receiveTime": "2025-10-30 16:59:33.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:30.000",
+  "timeStamp": {
+    "$numberLong": "1761814770000"
+  },
+  "velocity": 78.2
+},
+{
+  "altitude": "628.0",
+  "angle": 38.872398698468544,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "2",
+  "ifSpecial": false,
+  "latitude": "40.443847",
+  "longitude": "117.483583",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀H00E77",
+  "radarCode": "578062943485",
+  "receiveTime": "2025-10-30 16:59:32.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:31.000",
+  "timeStamp": {
+    "$numberLong": "1761814771000"
+  },
+  "velocity": 78.2
+},
+{
+  "altitude": "628.0",
+  "angle": 37.76826926449962,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "2",
+  "ifSpecial": false,
+  "latitude": "40.444057",
+  "longitude": "117.483794",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀HXT177",
+  "radarCode": "578062957121",
+  "receiveTime": "2025-10-30 16:59:32.556",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:31.000",
+  "timeStamp": {
+    "$numberLong": "1761814771000"
+  },
+  "velocity": 84.1
+},
+{
+  "altitude": "627.0",
+  "angle": 34.870733065899,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.444509",
+  "longitude": "117.484227",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀BD66V3",
+  "radarCode": "578062943469",
+  "receiveTime": "2025-10-30 16:59:32.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:31.000",
+  "timeStamp": {
+    "$numberLong": "1761814771000"
+  },
+  "velocity": 81
+},
+{
+  "altitude": "628.0",
+  "angle": 42.63801752091706,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.443377",
+  "longitude": "117.483049",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀H3129F",
+  "radarCode": "314040064163",
+  "receiveTime": "2025-10-30 16:59:33.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:31.000",
+  "timeStamp": {
+    "$numberLong": "1761814771000"
+  },
+  "velocity": 88.2
+},
+{
+  "altitude": "621.0",
+  "angle": 34.59351651399618,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.44455",
+  "longitude": "117.484212",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀B00Q8D",
+  "radarCode": "314070064718",
+  "receiveTime": "2025-10-30 16:59:34.556",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:31.000",
+  "timeStamp": {
+    "$numberLong": "1761814771000"
+  },
+  "velocity": 77.8
+},
+{
+  "altitude": "628.0",
+  "angle": 37.79650964459802,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "2",
+  "ifSpecial": false,
+  "latitude": "40.444004",
+  "longitude": "117.483743",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀H00E77",
+  "radarCode": "578062943485",
+  "receiveTime": "2025-10-30 16:59:33.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:32.000",
+  "timeStamp": {
+    "$numberLong": "1761814772000"
+  },
+  "velocity": 79.5
+},
+{
+  "altitude": "628.0",
+  "angle": 36.9403503128529,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "2",
+  "ifSpecial": false,
+  "latitude": "40.444224",
+  "longitude": "117.483959",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀HXT177",
+  "radarCode": "578062957121",
+  "receiveTime": "2025-10-30 16:59:33.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:32.000",
+  "timeStamp": {
+    "$numberLong": "1761814772000"
+  },
+  "velocity": 83.6
+},
+{
+  "altitude": "627.0",
+  "angle": 33.61425663601398,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.444675",
+  "longitude": "117.484372",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀BD66V3",
+  "radarCode": "578062943469",
+  "receiveTime": "2025-10-30 16:59:33.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:32.000",
+  "timeStamp": {
+    "$numberLong": "1761814772000"
+  },
+  "velocity": 79.8
+},
+{
+  "altitude": "628.0",
+  "angle": 41.26500371396111,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.443547",
+  "longitude": "117.483245",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀H3129F",
+  "radarCode": "314040064163",
+  "receiveTime": "2025-10-30 16:59:34.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:32.000",
+  "timeStamp": {
+    "$numberLong": "1761814772000"
+  },
+  "velocity": 90.5
+},
+{
+  "altitude": "631.0",
+  "angle": 37.44057414806218,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.44394",
+  "longitude": "117.483834",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀H85217",
+  "radarCode": "314070064304",
+  "receiveTime": "2025-10-30 16:59:35.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:32.000",
+  "timeStamp": {
+    "$numberLong": "1761814772000"
+  },
+  "velocity": 82.7
+},
+{
+  "altitude": "622.0",
+  "angle": 33.870329096000205,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.444711",
+  "longitude": "117.484354",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀B00Q8D",
+  "radarCode": "314070064718",
+  "receiveTime": "2025-10-30 16:59:35.556",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:32.000",
+  "timeStamp": {
+    "$numberLong": "1761814772000"
+  },
+  "velocity": 77.6
+},
+{
+  "altitude": "628.0",
+  "angle": 36.593001725688055,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "2",
+  "ifSpecial": false,
+  "latitude": "40.444168",
+  "longitude": "117.483903",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀H00E77",
+  "radarCode": "578062943485",
+  "receiveTime": "2025-10-30 16:59:34.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:33.000",
+  "timeStamp": {
+    "$numberLong": "1761814773000"
+  },
+  "velocity": 81.8
+},
+{
+  "altitude": "628.0",
+  "angle": 35.782000410274236,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "2",
+  "ifSpecial": false,
+  "latitude": "40.444394",
+  "longitude": "117.48412",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀HXT177",
+  "radarCode": "578062957121",
+  "receiveTime": "2025-10-30 16:59:34.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:33.000",
+  "timeStamp": {
+    "$numberLong": "1761814773000"
+  },
+  "velocity": 83.9
+},
+{
+  "altitude": "627.0",
+  "angle": 32.82281453847992,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.444839",
+  "longitude": "117.484511",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀BD66V3",
+  "radarCode": "578062943469",
+  "receiveTime": "2025-10-30 16:59:34.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:33.000",
+  "timeStamp": {
+    "$numberLong": "1761814773000"
+  },
+  "velocity": 78.1
+},
+{
+  "altitude": "627.0",
+  "angle": 39.70042487795058,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.443723",
+  "longitude": "117.483437",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀H3129F",
+  "radarCode": "314040064163",
+  "receiveTime": "2025-10-30 16:59:35.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:33.000",
+  "timeStamp": {
+    "$numberLong": "1761814773000"
+  },
+  "velocity": 91.6
+},
+{
+  "altitude": "622.0",
+  "angle": 32.76481327271233,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.444873",
+  "longitude": "117.484491",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀B00Q8D",
+  "radarCode": "314070064718",
+  "receiveTime": "2025-10-30 16:59:36.556",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:33.000",
+  "timeStamp": {
+    "$numberLong": "1761814773000"
+  },
+  "velocity": 77.1
+},
+{
+  "altitude": "628.0",
+  "angle": 35.93445904322425,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "2",
+  "ifSpecial": false,
+  "latitude": "40.444336",
+  "longitude": "117.484063",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀H00E77",
+  "radarCode": "578062943485",
+  "receiveTime": "2025-10-30 16:59:35.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:34.000",
+  "timeStamp": {
+    "$numberLong": "1761814774000"
+  },
+  "velocity": 83.1
+},
+{
+  "altitude": "628.0",
+  "angle": 34.94302636905644,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "2",
+  "ifSpecial": false,
+  "latitude": "40.444565",
+  "longitude": "117.484277",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀HXT177",
+  "radarCode": "578062957121",
+  "receiveTime": "2025-10-30 16:59:35.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:34.000",
+  "timeStamp": {
+    "$numberLong": "1761814774000"
+  },
+  "velocity": 83.5
+},
+{
+  "altitude": "627.0",
+  "angle": 31.962059383470944,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.445",
+  "longitude": "117.484643",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀BD66V3",
+  "radarCode": "578062943469",
+  "receiveTime": "2025-10-30 16:59:35.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:34.000",
+  "timeStamp": {
+    "$numberLong": "1761814774000"
+  },
+  "velocity": 76
+},
+{
+  "altitude": "627.0",
+  "angle": 38.673957592533725,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.443897",
+  "longitude": "117.48362",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀H3129F",
+  "radarCode": "314040064163",
+  "receiveTime": "2025-10-30 16:59:36.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:34.000",
+  "timeStamp": {
+    "$numberLong": "1761814774000"
+  },
+  "velocity": 89.2
+},
+{
+  "altitude": "628.0",
+  "angle": 34.306042763969,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.444288",
+  "longitude": "117.484146",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀H85217",
+  "radarCode": "314070064304",
+  "receiveTime": "2025-10-30 16:59:37.556",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:34.000",
+  "timeStamp": {
+    "$numberLong": "1761814774000"
+  },
+  "velocity": 84.3
+},
+{
+  "altitude": "77.0",
+  "angle": 0,
+  "carFunction": "2",
+  "carType": "1",
+  "ifSpecial": false,
+  "latitude": "30.488388",
+  "longitude": "114.557365",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "无车牌",
+  "radarCode": "314070064775",
+  "receiveTime": "2025-10-30 16:59:37.556",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:34.000",
+  "timeStamp": {
+    "$numberLong": "1761814774000"
+  },
+  "velocity": 0
+},
+{
+  "altitude": "622.0",
+  "angle": 32.0313576344717,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.445036",
+  "longitude": "117.484625",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀B00Q8D",
+  "radarCode": "314070064718",
+  "receiveTime": "2025-10-30 16:59:37.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:34.000",
+  "timeStamp": {
+    "$numberLong": "1761814774000"
+  },
+  "velocity": 77
+},
+{
+  "altitude": "627.0",
+  "angle": 34.970770806912014,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "2",
+  "ifSpecial": false,
+  "latitude": "40.444509",
+  "longitude": "117.484222",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀H00E77",
+  "radarCode": "578062943485",
+  "receiveTime": "2025-10-30 16:59:36.556",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:35.000",
+  "timeStamp": {
+    "$numberLong": "1761814775000"
+  },
+  "velocity": 84.5
+},
+{
+  "altitude": "628.0",
+  "angle": 33.59421931489362,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "2",
+  "ifSpecial": false,
+  "latitude": "40.444738",
+  "longitude": "117.484428",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀HXT177",
+  "radarCode": "578062957121",
+  "receiveTime": "2025-10-30 16:59:36.556",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:35.000",
+  "timeStamp": {
+    "$numberLong": "1761814775000"
+  },
+  "velocity": 83.1
+},
+{
+  "altitude": "627.0",
+  "angle": 30.848252234566644,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.445158",
+  "longitude": "117.484767",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀BD66V3",
+  "radarCode": "578062943469",
+  "receiveTime": "2025-10-30 16:59:36.556",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:35.000",
+  "timeStamp": {
+    "$numberLong": "1761814775000"
+  },
+  "velocity": 73.7
+},
+{
+  "altitude": "627.0",
+  "angle": 37.43000109112734,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.444072",
+  "longitude": "117.483796",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀H3129F",
+  "radarCode": "314040064163",
+  "receiveTime": "2025-10-30 16:59:38.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:35.000",
+  "timeStamp": {
+    "$numberLong": "1761814775000"
+  },
+  "velocity": 88.2
+},
+{
+  "altitude": "622.0",
+  "angle": 30.90525643601279,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.4452",
+  "longitude": "117.484754",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀B00Q8D",
+  "radarCode": "314070064718",
+  "receiveTime": "2025-10-30 16:59:38.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:35.000",
+  "timeStamp": {
+    "$numberLong": "1761814775000"
+  },
+  "velocity": 76.5
+},
+{
+  "altitude": "627.0",
+  "angle": 33.96252177851818,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "2",
+  "ifSpecial": false,
+  "latitude": "40.444683",
+  "longitude": "117.484376",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀H00E77",
+  "radarCode": "578062943485",
+  "receiveTime": "2025-10-30 16:59:37.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:36.000",
+  "timeStamp": {
+    "$numberLong": "1761814776000"
+  },
+  "velocity": 84
+},
+{
+  "altitude": "628.0",
+  "angle": 32.38251756249883,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "2",
+  "ifSpecial": false,
+  "latitude": "40.444912",
+  "longitude": "117.484573",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀HXT177",
+  "radarCode": "578062957121",
+  "receiveTime": "2025-10-30 16:59:37.556",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:36.000",
+  "timeStamp": {
+    "$numberLong": "1761814776000"
+  },
+  "velocity": 82.5
+},
+{
+  "altitude": "627.0",
+  "angle": 29.97755211538032,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.445315",
+  "longitude": "117.484886",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀BD66V3",
+  "radarCode": "578062943469",
+  "receiveTime": "2025-10-30 16:59:37.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:36.000",
+  "timeStamp": {
+    "$numberLong": "1761814776000"
+  },
+  "velocity": 72.6
+},
+{
+  "altitude": "626.0",
+  "angle": 32.90659883400559,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.444642",
+  "longitude": "117.484447",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀H85217",
+  "radarCode": "314070064304",
+  "receiveTime": "2025-10-30 16:59:39.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:36.000",
+  "timeStamp": {
+    "$numberLong": "1761814776000"
+  },
+  "velocity": 84.4
+},
+{
+  "altitude": "626.0",
+  "angle": 36.6432875401606,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.444249",
+  "longitude": "117.483969",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀H3129F",
+  "radarCode": "314040064163",
+  "receiveTime": "2025-10-30 16:59:39.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:36.000",
+  "timeStamp": {
+    "$numberLong": "1761814776000"
+  },
+  "velocity": 88.3
+},
+{
+  "altitude": "627.0",
+  "angle": 32.91551041330467,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "2",
+  "ifSpecial": false,
+  "latitude": "40.444857",
+  "longitude": "117.484524",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀H00E77",
+  "radarCode": "578062943485",
+  "receiveTime": "2025-10-30 16:59:38.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:37.000",
+  "timeStamp": {
+    "$numberLong": "1761814777000"
+  },
+  "velocity": 83
+},
+{
+  "altitude": "628.0",
+  "angle": 31.407905668976014,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "2",
+  "ifSpecial": false,
+  "latitude": "40.445084",
+  "longitude": "117.484711",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀HXT177",
+  "radarCode": "578062957121",
+  "receiveTime": "2025-10-30 16:59:38.556",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:37.000",
+  "timeStamp": {
+    "$numberLong": "1761814777000"
+  },
+  "velocity": 80.7
+},
+{
+  "altitude": "628.0",
+  "angle": 28.924612155905265,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.445472",
+  "longitude": "117.485",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀BD66V3",
+  "radarCode": "578062943469",
+  "receiveTime": "2025-10-30 16:59:38.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:37.000",
+  "timeStamp": {
+    "$numberLong": "1761814777000"
+  },
+  "velocity": 71.8
+},
+{
+  "altitude": "623.0",
+  "angle": 29.44063100938132,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.445529",
+  "longitude": "117.484998",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀B00Q8D",
+  "radarCode": "314070064718",
+  "receiveTime": "2025-10-30 16:59:39.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:37.000",
+  "timeStamp": {
+    "$numberLong": "1761814777000"
+  },
+  "velocity": 75.6
+},
+{
+  "altitude": "626.0",
+  "angle": 35.44842799682249,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.444435",
+  "longitude": "117.484143",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀H3129F",
+  "radarCode": "314040064163",
+  "receiveTime": "2025-10-30 16:59:40.556",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:37.000",
+  "timeStamp": {
+    "$numberLong": "1761814777000"
+  },
+  "velocity": 91.4
+},
+{
+  "altitude": "627.0",
+  "angle": 31.775799634001487,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "2",
+  "ifSpecial": false,
+  "latitude": "40.445029",
+  "longitude": "117.484664",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀H00E77",
+  "radarCode": "578062943485",
+  "receiveTime": "2025-10-30 16:59:39.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:38.000",
+  "timeStamp": {
+    "$numberLong": "1761814778000"
+  },
+  "velocity": 81
+},
+{
+  "altitude": "628.0",
+  "angle": 30.0973742467786,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "2",
+  "ifSpecial": false,
+  "latitude": "40.445256",
+  "longitude": "117.484842",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀HXT177",
+  "radarCode": "578062957121",
+  "receiveTime": "2025-10-30 16:59:39.556",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:38.000",
+  "timeStamp": {
+    "$numberLong": "1761814778000"
+  },
+  "velocity": 79.6
+},
+{
+  "altitude": "628.0",
+  "angle": 28.001343397461312,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.445628",
+  "longitude": "117.485109",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀BD66V3",
+  "radarCode": "578062943469",
+  "receiveTime": "2025-10-30 16:59:39.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:38.000",
+  "timeStamp": {
+    "$numberLong": "1761814778000"
+  },
+  "velocity": 70.7
+},
+{
+  "altitude": "623.0",
+  "angle": 27.86152657845048,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.445696",
+  "longitude": "117.485114",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀B00Q8D",
+  "radarCode": "314070064718",
+  "receiveTime": "2025-10-30 16:59:40.556",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:38.000",
+  "timeStamp": {
+    "$numberLong": "1761814778000"
+  },
+  "velocity": 75.6
+},
+{
+  "altitude": "626.0",
+  "angle": 31.2989312168325,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.445005",
+  "longitude": "117.484737",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀H85217",
+  "radarCode": "314070064304",
+  "receiveTime": "2025-10-30 16:59:41.556",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:38.000",
+  "timeStamp": {
+    "$numberLong": "1761814778000"
+  },
+  "velocity": 85
+},
+{
+  "altitude": "626.0",
+  "angle": 34.20155390352039,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.444622",
+  "longitude": "117.48431",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀H3129F",
+  "radarCode": "314040064163",
+  "receiveTime": "2025-10-30 16:59:41.556",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:38.000",
+  "timeStamp": {
+    "$numberLong": "1761814778000"
+  },
+  "velocity": 90.5
+},
+{
+  "altitude": "627.0",
+  "angle": 30.99788320928633,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "2",
+  "ifSpecial": false,
+  "latitude": "40.4452",
+  "longitude": "117.484799",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀H00E77",
+  "radarCode": "578062943485",
+  "receiveTime": "2025-10-30 16:59:40.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:39.000",
+  "timeStamp": {
+    "$numberLong": "1761814779000"
+  },
+  "velocity": 79.9
+},
+{
+  "altitude": "628.0",
+  "angle": 26.900803949883198,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.445787",
+  "longitude": "117.485215",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀BD66V3",
+  "radarCode": "578062943469",
+  "receiveTime": "2025-10-30 16:59:40.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:39.000",
+  "timeStamp": {
+    "$numberLong": "1761814779000"
+  },
+  "velocity": 71.4
+},
+{
+  "altitude": "628.0",
+  "angle": 28.872368255943343,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "2",
+  "ifSpecial": false,
+  "latitude": "40.445423",
+  "longitude": "117.484963",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀HXT177",
+  "radarCode": "578062957121",
+  "receiveTime": "2025-10-30 16:59:41.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:39.000",
+  "timeStamp": {
+    "$numberLong": "1761814779000"
+  },
+  "velocity": 76.3
+},
+{
+  "altitude": "623.0",
+  "angle": 26.763817231811572,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.445865",
+  "longitude": "117.485226",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀B00Q8D",
+  "radarCode": "314070064718",
+  "receiveTime": "2025-10-30 16:59:41.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:39.000",
+  "timeStamp": {
+    "$numberLong": "1761814779000"
+  },
+  "velocity": 75.8
+},
+{
+  "altitude": "626.0",
+  "angle": 32.906083220565506,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.444809",
+  "longitude": "117.484469",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀H3129F",
+  "radarCode": "314040064163",
+  "receiveTime": "2025-10-30 16:59:42.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:39.000",
+  "timeStamp": {
+    "$numberLong": "1761814779000"
+  },
+  "velocity": 89.2
+},
+{
+  "altitude": "627.0",
+  "angle": 30.19769024828537,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "2",
+  "ifSpecial": false,
+  "latitude": "40.44537",
+  "longitude": "117.484929",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀H00E77",
+  "radarCode": "578062943485",
+  "receiveTime": "2025-10-30 16:59:41.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:40.000",
+  "timeStamp": {
+    "$numberLong": "1761814780000"
+  },
+  "velocity": 78.7
+},
+{
+  "altitude": "628.0",
+  "angle": 26.100483198281268,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.445947",
+  "longitude": "117.485318",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀BD66V3",
+  "radarCode": "578062943469",
+  "receiveTime": "2025-10-30 16:59:41.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:40.000",
+  "timeStamp": {
+    "$numberLong": "1761814780000"
+  },
+  "velocity": 71.3
+},
+{
+  "altitude": "624.0",
+  "angle": 25.80235909142118,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.446035",
+  "longitude": "117.485334",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀B00Q8D",
+  "radarCode": "314070064718",
+  "receiveTime": "2025-10-30 16:59:42.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:40.000",
+  "timeStamp": {
+    "$numberLong": "1761814780000"
+  },
+  "velocity": 75.6
+},
+{
+  "altitude": "626.0",
+  "angle": 29.14050529990533,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.445364",
+  "longitude": "117.485",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀H85217",
+  "radarCode": "314070064304",
+  "receiveTime": "2025-10-30 16:59:43.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:40.000",
+  "timeStamp": {
+    "$numberLong": "1761814780000"
+  },
+  "velocity": 82.3
+},
+{
+  "altitude": "625.0",
+  "angle": 31.544453419505032,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.44499",
+  "longitude": "117.484615",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀H3129F",
+  "radarCode": "314040064163",
+  "receiveTime": "2025-10-30 16:59:43.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:40.000",
+  "timeStamp": {
+    "$numberLong": "1761814780000"
+  },
+  "velocity": 85
+},
+{
+  "altitude": "627.0",
+  "angle": 28.416662368797745,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "2",
+  "ifSpecial": false,
+  "latitude": "40.445543",
+  "longitude": "117.485052",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀H00E77",
+  "radarCode": "578062943485",
+  "receiveTime": "2025-10-30 16:59:42.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:41.000",
+  "timeStamp": {
+    "$numberLong": "1761814781000"
+  },
+  "velocity": 78.7
+},
+{
+  "altitude": "628.0",
+  "angle": 27.35296255325983,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "2",
+  "ifSpecial": false,
+  "latitude": "40.445754",
+  "longitude": "117.485188",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀HXT177",
+  "radarCode": "578062957121",
+  "receiveTime": "2025-10-30 16:59:42.556",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:41.000",
+  "timeStamp": {
+    "$numberLong": "1761814781000"
+  },
+  "velocity": 74.6
+},
+{
+  "altitude": "628.0",
+  "angle": 25.162407723218905,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.446109",
+  "longitude": "117.485418",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀BD66V3",
+  "radarCode": "578062943469",
+  "receiveTime": "2025-10-30 16:59:42.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:41.000",
+  "timeStamp": {
+    "$numberLong": "1761814781000"
+  },
+  "velocity": 71.6
+},
+{
+  "altitude": "624.0",
+  "angle": 24.91831853720197,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.446207",
+  "longitude": "117.485439",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀B00Q8D",
+  "radarCode": "314070064718",
+  "receiveTime": "2025-10-30 16:59:43.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:41.000",
+  "timeStamp": {
+    "$numberLong": "1761814781000"
+  },
+  "velocity": 75.9
+},
+{
+  "altitude": "625.0",
+  "angle": 30.31669479817043,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.445167",
+  "longitude": "117.484751",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀H3129F",
+  "radarCode": "314040064163",
+  "receiveTime": "2025-10-30 16:59:44.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:41.000",
+  "timeStamp": {
+    "$numberLong": "1761814781000"
+  },
+  "velocity": 82.1
+},
+{
+  "altitude": "627.0",
+  "angle": 27.36929437270146,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "2",
+  "ifSpecial": false,
+  "latitude": "40.445715",
+  "longitude": "117.485169",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀H00E77",
+  "radarCode": "578062943485",
+  "receiveTime": "2025-10-30 16:59:43.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:42.000",
+  "timeStamp": {
+    "$numberLong": "1761814782000"
+  },
+  "velocity": 77.5
+},
+{
+  "altitude": "628.0",
+  "angle": 26.115322569925183,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "2",
+  "ifSpecial": false,
+  "latitude": "40.445917",
+  "longitude": "117.485293",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀HXT177",
+  "radarCode": "578062957121",
+  "receiveTime": "2025-10-30 16:59:43.556",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:42.000",
+  "timeStamp": {
+    "$numberLong": "1761814782000"
+  },
+  "velocity": 72.7
+},
+{
+  "altitude": "628.0",
+  "angle": 24.233091054459237,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.446273",
+  "longitude": "117.485515",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀BD66V3",
+  "radarCode": "578062943469",
+  "receiveTime": "2025-10-30 16:59:43.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:42.000",
+  "timeStamp": {
+    "$numberLong": "1761814782000"
+  },
+  "velocity": 72
+},
+{
+  "altitude": "626.0",
+  "angle": 26.360635429369665,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.445708",
+  "longitude": "117.485224",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀H85217",
+  "radarCode": "314070064304",
+  "receiveTime": "2025-10-30 16:59:44.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:42.000",
+  "timeStamp": {
+    "$numberLong": "1761814782000"
+  },
+  "velocity": 76.8
+},
+{
+  "altitude": "624.0",
+  "angle": 23.74431185423458,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.44638",
+  "longitude": "117.485539",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀B00Q8D",
+  "radarCode": "314070064718",
+  "receiveTime": "2025-10-30 16:59:44.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:42.000",
+  "timeStamp": {
+    "$numberLong": "1761814782000"
+  },
+  "velocity": 75.7
+},
+{
+  "altitude": "625.0",
+  "angle": 29.390141230860536,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.445344",
+  "longitude": "117.484882",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀H3129F",
+  "radarCode": "314040064163",
+  "receiveTime": "2025-10-30 16:59:45.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:42.000",
+  "timeStamp": {
+    "$numberLong": "1761814782000"
+  },
+  "velocity": 81.3
+},
+{
+  "altitude": "627.0",
+  "angle": 26.28912515391613,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "2",
+  "ifSpecial": false,
+  "latitude": "40.445886",
+  "longitude": "117.48528",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀H00E77",
+  "radarCode": "578062943485",
+  "receiveTime": "2025-10-30 16:59:44.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:43.000",
+  "timeStamp": {
+    "$numberLong": "1761814783000"
+  },
+  "velocity": 76.3
+},
+{
+  "altitude": "628.0",
+  "angle": 25.382514499992794,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "2",
+  "ifSpecial": false,
+  "latitude": "40.446079",
+  "longitude": "117.485394",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀HXT177",
+  "radarCode": "578062957121",
+  "receiveTime": "2025-10-30 16:59:44.556",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:43.000",
+  "timeStamp": {
+    "$numberLong": "1761814783000"
+  },
+  "velocity": 71.8
+},
+{
+  "altitude": "629.0",
+  "angle": 23.188083274627047,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.44644",
+  "longitude": "117.485609",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀BD66V3",
+  "radarCode": "578062943469",
+  "receiveTime": "2025-10-30 16:59:44.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:43.000",
+  "timeStamp": {
+    "$numberLong": "1761814783000"
+  },
+  "velocity": 72.7
+},
+{
+  "altitude": "625.0",
+  "angle": 22.679872969672545,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.446553",
+  "longitude": "117.485634",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀B00Q8D",
+  "radarCode": "314070064718",
+  "receiveTime": "2025-10-30 16:59:45.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:43.000",
+  "timeStamp": {
+    "$numberLong": "1761814783000"
+  },
+  "velocity": 75.1
+},
+{
+  "altitude": "625.0",
+  "angle": 28.17760003186612,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.445523",
+  "longitude": "117.485008",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀H3129F",
+  "radarCode": "314040064163",
+  "receiveTime": "2025-10-30 16:59:46.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:43.000",
+  "timeStamp": {
+    "$numberLong": "1761814783000"
+  },
+  "velocity": 81.3
+},
+{
+  "altitude": "628.0",
+  "angle": 25.516272179690134,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "2",
+  "ifSpecial": false,
+  "latitude": "40.446055",
+  "longitude": "117.485386",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀H00E77",
+  "radarCode": "578062943485",
+  "receiveTime": "2025-10-30 16:59:45.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:44.000",
+  "timeStamp": {
+    "$numberLong": "1761814784000"
+  },
+  "velocity": 75
+},
+{
+  "altitude": "629.0",
+  "angle": 24.631437139977493,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "2",
+  "ifSpecial": false,
+  "latitude": "40.44624",
+  "longitude": "117.485491",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀HXT177",
+  "radarCode": "578062957121",
+  "receiveTime": "2025-10-30 16:59:45.556",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:44.000",
+  "timeStamp": {
+    "$numberLong": "1761814784000"
+  },
+  "velocity": 70.9
+},
+{
+  "altitude": "629.0",
+  "angle": 21.957048126990003,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.446608",
+  "longitude": "117.485698",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀BD66V3",
+  "radarCode": "578062943469",
+  "receiveTime": "2025-10-30 16:59:45.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:44.000",
+  "timeStamp": {
+    "$numberLong": "1761814784000"
+  },
+  "velocity": 72.5
+},
+{
+  "altitude": "627.0",
+  "angle": 23.699710328902142,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.446053",
+  "longitude": "117.485423",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀H85217",
+  "radarCode": "314070064304",
+  "receiveTime": "2025-10-30 16:59:46.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:44.000",
+  "timeStamp": {
+    "$numberLong": "1761814784000"
+  },
+  "velocity": 75.4
+},
+{
+  "altitude": "625.0",
+  "angle": 27.15155547630866,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.445707",
+  "longitude": "117.485132",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀H3129F",
+  "radarCode": "314040064163",
+  "receiveTime": "2025-10-30 16:59:47.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:44.000",
+  "timeStamp": {
+    "$numberLong": "1761814784000"
+  },
+  "velocity": 82.8
+},
+{
+  "altitude": "625.0",
+  "angle": 21.58141572186645,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.44673",
+  "longitude": "117.485726",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀B00Q8D",
+  "radarCode": "314070064718",
+  "receiveTime": "2025-10-30 16:59:47.556",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:44.000",
+  "timeStamp": {
+    "$numberLong": "1761814784000"
+  },
+  "velocity": 76.2
+},
+{
+  "altitude": "628.0",
+  "angle": 24.845420272261435,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "2",
+  "ifSpecial": false,
+  "latitude": "40.446221",
+  "longitude": "117.485487",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀H00E77",
+  "radarCode": "578062943485",
+  "receiveTime": "2025-10-30 16:59:46.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:45.000",
+  "timeStamp": {
+    "$numberLong": "1761814785000"
+  },
+  "velocity": 73.2
+},
+{
+  "altitude": "629.0",
+  "angle": 23.599450118003574,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "2",
+  "ifSpecial": false,
+  "latitude": "40.446402",
+  "longitude": "117.485584",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀HXT177",
+  "radarCode": "578062957121",
+  "receiveTime": "2025-10-30 16:59:46.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:45.000",
+  "timeStamp": {
+    "$numberLong": "1761814785000"
+  },
+  "velocity": 70.8
+},
+{
+  "altitude": "629.0",
+  "angle": 21.493417846991235,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.44678",
+  "longitude": "117.485787",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀BD66V3",
+  "radarCode": "578062943469",
+  "receiveTime": "2025-10-30 16:59:46.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:45.000",
+  "timeStamp": {
+    "$numberLong": "1761814785000"
+  },
+  "velocity": 74
+},
+{
+  "altitude": "625.0",
+  "angle": 26.289127856704624,
+  "carFunction": "2",
+  "carType": "1",
+  "direction": "1",
+  "ifSpecial": false,
+  "latitude": "40.445878",
+  "longitude": "117.485243",
+  "nearestCameraCode": "JK_GDSXJ_0901",
+  "plateNo": "冀H3129F",
+  "radarCode": "314040064163",
+  "receiveTime": "2025-10-30 16:59:48.557",
+  "secondNearestCameraCode": "JK_GDSXJ_0902",
+  "time": "2025-10-30 16:59:45.000",
+  "timeStamp": {
+    "$numberLong": "1761814785000"
+  },
+  "velocity": 76.3
+}]

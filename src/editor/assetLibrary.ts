@@ -20,6 +20,11 @@ export const defaultAsset: Asset[] = [
         id: "asset-3",
         name: "road",
         url: "road_hd/road_hd/scene.gltf"
+    },
+    {
+        id: "asset-4",
+        name: "suv",
+        url: "SUV_gltf/b03505c6f4f942e5ade70692a899e702.gltf"
     }
 ];
 

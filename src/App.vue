@@ -10,13 +10,22 @@ const roadVisualRef = ref();
 function onLoadRoad() {
     roadVisualRef.value?.loadRoadData();
 }
+function handleLoadRoad() {
+    roadVisualRef.value?.loadTrajectories(
+        "/data/20251030_163823_170604/163823_163848.json",
+        2
+    );
+}
 </script>
 
 <template>
     <div class="geoasis-app">
         <Editor>
             <AppHeader />
-            <LayersBar @load-road="onLoadRoad" />
+            <LayersBar
+                @load-road="onLoadRoad"
+                @load-car-trajectories="handleLoadRoad"
+            />
             <InfoPanel />
             <RoadVisual ref="roadVisualRef" />
             <FooterBar />

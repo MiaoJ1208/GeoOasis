@@ -89,6 +89,13 @@ const {
                 加载道路数据
             </Button>
         </div>
+        <Separator />
+        <div>
+            <Button @click="$emit('load-car-trajectories')">
+                <Icon icon="material-symbols:location-on" />
+                车辆行驶轨迹
+            </Button>
+        </div>
         <!-- 坐标定位功能 -->
         <div class="coordinate-navigation">
             <h3 class="section-title">坐标定位</h3>
