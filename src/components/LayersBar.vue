@@ -29,9 +29,37 @@ const {
     height,
     errorMessage,
     flyToCoordinates,
-    clearInputs,
-    flyToLocation
+    clearInputs
 } = useCoordinateNavigation();
+
+// 新增：触发后端执行 bat 的请求（项目开发时可用代理 /run-merge）
+async function runMerge() {
+    try {
+        const res = await fetch("/run-merge", { 
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            }
+        });
+        
+        if (!res.ok) {
+            const errorData = await res.json().catch(() => ({ message: res.statusText }));
+            throw new Error(errorData.message || `HTTP ${res.status}`);
+        }
+        
+        const data = await res.json();
+        console.log("run-merge response:", data);
+        
+        if (data.success) {
+            alert(`融合解析执行成功！\n${data.message || ""}`);
+        } else {
+            alert(`融合解析执行失败：\n${data.message || data.error || "未知错误"}`);
+        }
+    } catch (err: any) {
+        console.error("run-merge error:", err);
+        alert(`触发失败：${err.message || "请确认后端服务已启动（运行 pnpm run-bat-server）"}`);
+    }
+}
 </script>
 
 <template>
@@ -96,7 +124,14 @@ const {
                 车辆行驶轨迹
             </Button>
         </div>
-        <!-- 坐标定位功能 -->
+        <Separator />
+        <div>
+            <Button @click="runMerge">
+                <Icon icon="material-symbols:integration-instructions" />
+                融合解析
+            </Button>
+        </div>
+        <Separator />
         <div class="coordinate-navigation">
             <h3 class="section-title">坐标定位</h3>
             <div class="coordinate-input-group">

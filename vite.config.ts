@@ -74,5 +74,14 @@ export default defineConfig({
     ],
     optimizeDeps: {
         exclude: ["rust-wasm-heatmap"]
+    },
+    server: {
+        proxy: {
+            "/run-merge": {
+                target: "http://localhost:3001",
+                changeOrigin: true,
+                secure: false
+            }
+        }
     }
 });

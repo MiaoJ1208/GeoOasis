@@ -151,11 +151,15 @@ async function loadTrajectories(
 
                 // 创建用于朝向的 VelocityOrientationProperty（可复用）
                 const velOri = new Cesium.VelocityOrientationProperty(sampled);
-                // 需要旋转的固定四元数：这里绕 Z 轴 90 度，若方向不对可改为 -90 或换轴（UNIT_X/UNIT_Y）
+                // // 需要旋转的固定四元数：这里绕 Z 轴 90 度，若方向不对可改为 -90 或换轴（UNIT_X/UNIT_Y）
                 const fixQuat = Cesium.Quaternion.fromAxisAngle(
                     Cesium.Cartesian3.UNIT_Z,
                     Cesium.Math.toRadians(-90)
                 );
+
+                // LOD 阈值（可根据需要调整）
+                const modelDistanceThreshold = 1500; // 距离小于此值显示模型（米）
+                const pointDistanceThreshold = modelDistanceThreshold; // >= 显示点/图标
 
                 const ent = viewer.entities.add({
                     id: `veh-${plate}-${Math.random().toString(36).slice(2, 8)}`,

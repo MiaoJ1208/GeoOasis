@@ -7,7 +7,9 @@
         "dev": "vite",
         "build": "vue-tsc && vite build",
         "preview": "vite preview",
-        "format": "prettier --write src/**/*.{ts,tsx,js,jsx,json,vue}"
+        "format": "prettier --write src/**/*.{ts,tsx,js,jsx,json,vue}",
+        "run-bat-server": "tsx src/backend/scripts/run-bat-server.ts",
+        "dev:all": "concurrently \"pnpm dev\" \"pnpm run-bat-server\""
     },
     "dependencies": {
         "@hocuspocus/provider": "^2.11.3",
@@ -16,7 +18,9 @@
         "@turf/buffer": "^7.1.0",
         "@vueuse/core": "^12.5.0",
         "cesium": "^1.123.1",
+        "cors": "^2.8.5",
         "element-plus": "^2.4.4",
+        "express": "^5.1.0",
         "lib0": "^0.2.98",
         "nanoid": "^5.0.4",
         "pinia": "^2.1.7",
@@ -27,8 +31,13 @@
         "yjs": "^13.6.14"
     },
     "devDependencies": {
+        "@types/cors": "^2.8.19",
+        "@types/express": "^5.0.5",
+        "@types/node": "^24.10.1",
         "@vitejs/plugin-vue": "^4.5.2",
+        "concurrently": "^9.2.1",
         "prettier": "^3.1.1",
+        "tsx": "^4.20.6",
         "typescript": "^5.2.2",
         "vite": "^5.0.8",
         "vite-plugin-pwa": "^0.20.5",
