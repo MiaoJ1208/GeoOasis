@@ -24,23 +24,23 @@ app.use(express.json()); // 解析 JSON 请求体
 
 // 从环境变量获取 bat 文件路径，如果没有则使用默认路径
 // 可以通过环境变量 BAT_FILE_PATH 来配置，例如：BAT_FILE_PATH="F:/path/to/file.bat"
-const batPath = process.env.BAT_FILE_PATH 
+const batPath = process.env.BAT_FILE_PATH
     ? path.resolve(process.env.BAT_FILE_PATH)
     : path.resolve(__dirname, "../../../../Fusion-Analysis/system-start.bat");
 
 // 运行批处理文件的接口（添加完整类型注解）
 app.post("/run-merge", async (_req: Request, res: Response) => {
     console.log(`收到执行请求，bat 文件路径: ${batPath}`);
-    
+
     try {
         // 检查 bat 文件是否存在
         await access(batPath);
         console.log(`开始执行 bat 文件: ${batPath}`);
-        
+
         // 执行 .bat 文件（通过 cmd.exe 调用，确保 Windows 兼容性）
         execFile(
             "cmd.exe",
-            ["/c", batPath], // /c 参数表示执行命令后关闭 cmd
+            ["/k", batPath], // /c 参数表示执行命令后关闭 cmd
             {
                 encoding: "utf8" as const, // 指定编码为 utf8
                 windowsHide: false, // 显示 cmd 窗口
@@ -71,7 +71,8 @@ app.post("/run-merge", async (_req: Request, res: Response) => {
         return res.status(404).json({
             success: false,
             error: `bat 文件不存在: ${batPath}`,
-            message: "请检查 bat 文件路径是否正确，或通过环境变量 BAT_FILE_PATH 配置正确的路径"
+            message:
+                "请检查 bat 文件路径是否正确，或通过环境变量 BAT_FILE_PATH 配置正确的路径"
         });
     }
 });

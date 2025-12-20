@@ -244,7 +244,123 @@ async function loadTrajectories(
     }
 }
 
-defineExpose({ loadRoadData, loadTrajectories });
+/**
+ * 视频车辆映射
+ *
+ */
+function spawnRealtimeVehicle(type: string = "car", lifeSeconds = 8) {
+    if (editor && editor.viewer) {
+        viewer = editor.viewer;
+
+        // ===== 1. 定义一条“虚拟车道”（和你道路对齐即可）=====
+        const start = Cesium.Cartesian3.fromDegrees(116.391, 39.9, 1000);
+        const end = Cesium.Cartesian3.fromDegrees(116.391, 39.902, 1000);
+
+        const now = Cesium.JulianDate.now();
+        const stop = Cesium.JulianDate.addSeconds(
+            now,
+            lifeSeconds,
+            new Cesium.JulianDate()
+        );
+
+        const sampled = new Cesium.SampledPositionProperty();
+        sampled.addSample(now, start);
+        sampled.addSample(stop, end);
+
+        const velOri = new Cesium.VelocityOrientationProperty(sampled);
+
+        // ===== 强制对齐 Cesium 时钟 =====
+        viewer.clock.startTime = now.clone();
+        viewer.clock.currentTime = now.clone();
+        viewer.clock.stopTime = stop.clone();
+        viewer.clock.shouldAnimate = true;
+
+        const ent = viewer.entities.add({
+            availability: new Cesium.TimeIntervalCollection([
+                new Cesium.TimeInterval({ start: now, stop })
+            ]),
+            position: sampled,
+            orientation: velOri,
+            model: {
+                uri: "/SUV_gltf/b03505c6f4f942e5ade70692a899e702.gltf",
+                minimumPixelSize: 32
+            }
+        });
+
+        vehicleEntities.push(ent);
+        console.log(
+            `[RoadVisual] Spawned realtime vehicle of type ${type}, will live for ${lifeSeconds} seconds`
+        );
+
+        // 自动清理，防止实体爆炸
+        setTimeout(() => {
+            viewer?.entities.remove(ent);
+        }, lifeSeconds * 1000);
+    }
+}
+
+let ws: WebSocket | null = null;
+
+// 前端初始化 WebSocket 连接
+function initSocket() {
+    ws = new WebSocket("ws://127.0.0.1:8765"); //建立实例，指定服务器地址
+
+    ws.onmessage = (ev) => {
+        console.log("[WS] message received");
+        console.log("[WS raw]", ev.data);
+
+        let msg: any;
+        try {
+            msg = JSON.parse(ev.data);
+        } catch (e) {
+            console.error("[WS parse error]", e);
+            return;
+        }
+
+        console.log("[WS parsed]", msg);
+
+        if (msg.type === "line_cross") {
+            console.log("[WS] spawn vehicle", msg.payload);
+            spawnRealtimeVehicle(msg.payload?.class ?? "car");
+        }
+    };
+
+    ws.onopen = () => console.log("WS connected");
+    ws.onerror = (e) => console.error("WS error", e);
+}
+
+function flyToInitView() {
+    if (editor && editor.viewer) {
+        viewer = editor.viewer;
+        viewer.camera.flyTo({
+            destination: Cesium.Cartesian3.fromDegrees(
+                116.3913, // lon
+                39.9075, // lat
+                3000 // height
+            ),
+            duration: 1.5
+        });
+    }
+}
+
+function videoVehicle() {
+    if (editor && editor.viewer) {
+        viewer = editor.viewer;
+
+        console.log("[RoadVisual] viewer bound");
+
+        flyToInitView();
+        initSocket();
+
+        viewer.entities.add({
+            position: Cesium.Cartesian3.fromDegrees(116.3913, 39.9075, 1000),
+            point: { pixelSize: 12, color: Cesium.Color.RED },
+            label: { text: "VIEWER READY" }
+        });
+    }
+}
+
+defineExpose({ loadRoadData, loadTrajectories, videoVehicle });
 </script>
 
 <style scoped></style>

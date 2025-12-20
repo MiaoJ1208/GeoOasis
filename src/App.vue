@@ -16,6 +16,9 @@ function handleLoadRoad() {
         2
     );
 }
+function videoVehicle() {
+    roadVisualRef.value?.videoVehicle();
+}
 </script>
 
 <template>
@@ -25,6 +28,7 @@ function handleLoadRoad() {
             <LayersBar
                 @load-road="onLoadRoad"
                 @load-car-trajectories="handleLoadRoad"
+                @load-video-vehicle="videoVehicle"
             />
             <InfoPanel />
             <RoadVisual ref="roadVisualRef" />
