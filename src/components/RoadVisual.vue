@@ -248,14 +248,25 @@ async function loadTrajectories(
  * 视频车辆映射
  *
  */
-function spawnRealtimeVehicle(type: string = "car", lifeSeconds = 8) {
+function spawnRealtimeVehicle(type: string = "car", lifeSeconds = 15) {
     if (editor && editor.viewer) {
         viewer = editor.viewer;
 
         // ===== 1. 定义一条“虚拟车道”（和你道路对齐即可）=====
-        const start = Cesium.Cartesian3.fromDegrees(116.391, 39.9, 1000);
-        const end = Cesium.Cartesian3.fromDegrees(116.391, 39.902, 1000);
+        // Cesium.Cartesian3.fromDegrees, 把 WGS84 经纬度坐标 转换为 Cesium 世界坐标（ECEF）
+        const start = Cesium.Cartesian3.fromDegrees(
+            117.48463609349766,
+            40.44651364265419,
+            628
+        );
+        const end = Cesium.Cartesian3.fromDegrees(
+            117.48359783531319,
+            40.444505529345484,
+            628
+        );
+        //116.391, 39.9, 100   39.902
 
+        //cesium时间系统，儒略时间，lifeseconds秒后消失
         const now = Cesium.JulianDate.now();
         const stop = Cesium.JulianDate.addSeconds(
             now,
@@ -263,11 +274,18 @@ function spawnRealtimeVehicle(type: string = "car", lifeSeconds = 8) {
             new Cesium.JulianDate()
         );
 
+        //SampledPositionProperty,是cesiumJS中的属性类型，表示物体在空间中随时间变化的位置。
+        // 基于采样点的位置数据，通过插值计算可以获取任意时间点上的位置信息
         const sampled = new Cesium.SampledPositionProperty();
+        //添加一个 时间-位置 对样本。getValue(time, result)：根据给定时间获取插值后的属性值。
         sampled.addSample(now, start);
         sampled.addSample(stop, end);
 
         const velOri = new Cesium.VelocityOrientationProperty(sampled);
+        const fixQuat = Cesium.Quaternion.fromAxisAngle(
+            Cesium.Cartesian3.UNIT_Z,
+            Cesium.Math.toRadians(-90)
+        );
 
         // ===== 强制对齐 Cesium 时钟 =====
         viewer.clock.startTime = now.clone();
@@ -280,10 +298,24 @@ function spawnRealtimeVehicle(type: string = "car", lifeSeconds = 8) {
                 new Cesium.TimeInterval({ start: now, stop })
             ]),
             position: sampled,
-            orientation: velOri,
+            // orientation: velOri,
+            orientation: new Cesium.CallbackProperty(
+                (time?: Cesium.JulianDate, result?: Cesium.Quaternion) => {
+                    if (!time) return undefined;
+                    const q = velOri.getValue(time);
+                    if (!q) return undefined;
+                    // result = q * fixQuat
+                    return Cesium.Quaternion.multiply(
+                        q,
+                        fixQuat,
+                        result || new Cesium.Quaternion()
+                    );
+                },
+                false
+            ),
             model: {
                 uri: "/SUV_gltf/b03505c6f4f942e5ade70692a899e702.gltf",
-                minimumPixelSize: 32
+                minimumPixelSize: 40
             }
         });
 
@@ -334,9 +366,9 @@ function flyToInitView() {
         viewer = editor.viewer;
         viewer.camera.flyTo({
             destination: Cesium.Cartesian3.fromDegrees(
-                116.3913, // lon
-                39.9075, // lat
-                3000 // height
+                117.48463609349766, // lon 117.484233
+                40.44651364265419, // lat
+                628 // height
             ),
             duration: 1.5
         });
@@ -353,7 +385,11 @@ function videoVehicle() {
         initSocket();
 
         viewer.entities.add({
-            position: Cesium.Cartesian3.fromDegrees(116.3913, 39.9075, 1000),
+            position: Cesium.Cartesian3.fromDegrees(
+                117.48463609349766,
+                40.44651364265419,
+                628
+            ),
             point: { pixelSize: 12, color: Cesium.Color.RED },
             label: { text: "VIEWER READY" }
         });
