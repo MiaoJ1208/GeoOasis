@@ -127,7 +127,7 @@ async function runMerge() {
         <div>
             <Button @click="$emit('load-car-trajectories')">
                 <Icon icon="material-symbols:location-on" />
-                车辆行驶轨迹
+                轨迹数据映射
             </Button>
         </div>
         <Separator />
@@ -141,7 +141,7 @@ async function runMerge() {
         <div>
             <Button @click="$emit('load-video-vehicle')">
                 <Icon icon="material-symbols:integration-instructions" />
-                视频车辆映射
+                视频数据映射
             </Button>
         </div>
         <Separator />

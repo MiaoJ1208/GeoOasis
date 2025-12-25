@@ -390,7 +390,7 @@ function videoVehicle() {
                 40.44651364265419,
                 628
             ),
-            point: { pixelSize: 12, color: Cesium.Color.RED },
+            point: { pixelSize: 6, color: Cesium.Color.RED },
             label: { text: "VIEWER READY" }
         });
     }
