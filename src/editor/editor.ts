@@ -112,7 +112,7 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
         this.doc = new Y.Doc();
         this.title = this.doc.getText("title");
         this.options = this.doc.getMap("options");
-        this.options.set("terrain", TerrainOption.ELLIPSOID);
+        this.options.set("terrain", TerrainOption.CESIUMWORLD);
         new IndexeddbPersistence("oasis-doc", this.doc);
         this.elements = this.doc.getMap("ElementsMap");
         this.layers = this.doc.getMap("LayersMap");

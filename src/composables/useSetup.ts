@@ -74,7 +74,18 @@ export const useSetup = () => {
             shouldAnimate: false,
             baseLayer: false
         });
-        cesiumViewer.scene.globe.depthTestAgainstTerrain = true;
+        // 1. 地表半透明（关键）
+        cesiumViewer.scene.globe.translucency.enabled = true;
+        cesiumViewer.scene.globe.translucency.frontFaceAlpha = 0.9;
+
+        // 2. 相机允许进入地下
+        cesiumViewer.scene.screenSpaceCameraController.enableCollisionDetection =
+            false;
+
+        // 3. 模型不被地形深度裁剪
+        // cesiumViewer.scene.globe.depthTestAgainstTerrain = false;
+
+        // cesiumViewer.scene.globe.depthTestAgainstTerrain = true;
         window.cesiumViewer = cesiumViewer;
         store.editor.attachViewer(cesiumViewer);
         viewer = cesiumViewer;

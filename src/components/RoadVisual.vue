@@ -8,6 +8,8 @@ import * as Cesium from "cesium";
 import { useGeoOasisStore } from "../store/GeoOasis.store";
 import { storeToRefs } from "pinia";
 import { parse } from "vue/compiler-sfc";
+import { Cartesian3 } from "cesium";
+import { createTunnelClippingPlanes } from "../editor/tunnelClipping";
 
 interface RoadFeature {
     type: string;
@@ -394,6 +396,19 @@ function videoVehicle() {
             label: { text: "VIEWER READY" }
         });
     }
+}
+
+/**
+ * 隧道裁剪
+ *
+ */
+function enableTunnelClipping() {
+    if (!viewer) return;
+
+    const tunnelCenter = Cartesian3.fromDegrees(116.391, 39.901, 500);
+
+    viewer.scene.globe.clippingPlanes =
+        createTunnelClippingPlanes(tunnelCenter);
 }
 
 defineExpose({ loadRoadData, loadTrajectories, videoVehicle });
