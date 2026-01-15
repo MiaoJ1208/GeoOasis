@@ -224,7 +224,9 @@ export const useSetup = () => {
             "lng:",
             CesiumMath.toDegrees(cartoPos.longitude),
             "lat:",
-            CesiumMath.toDegrees(cartoPos.latitude)
+            CesiumMath.toDegrees(cartoPos.latitude),
+            "height:",
+            cartoPos.height
         );
         console.log("camera.pickEllipsoid: ", ellipsoidPos);
         if (!globePos) {
