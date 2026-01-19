@@ -12,7 +12,7 @@ function onLoadRoad() {
 }
 function handleLoadRoad() {
     roadVisualRef.value?.loadTrajectories(
-        "/data/20251030_163823_170604/163823_163848.json",
+        "/data/20251030_163823_170604/Simulatedtrajectory1.json",
         2
     );
 }

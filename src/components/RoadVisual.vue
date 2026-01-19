@@ -3,7 +3,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, watch, defineExpose } from "vue";
+import { onMounted, ref, watch } from "vue";
 import * as Cesium from "cesium";
 import { useGeoOasisStore } from "../store/GeoOasis.store";
 import { storeToRefs } from "pinia";
@@ -81,13 +81,13 @@ function loadRoadData() {
  * 加载并可视化轨迹数据
  */
 async function loadTrajectories(
-    trajUrl = "/data/20251030_163823_170604/163823_163848.json",
+    trajUrl = "/data/20251030_163823_170604/Simulatedtrajectory1.json",
     assetIndex = 2
 ) {
     if (editor && editor.viewer) {
         viewer = editor.viewer;
         try {
-            const res = await fetch(trajUrl);
+            const res = await fetch(`${trajUrl}?t=${Date.now()}`);
             const data = await res.json();
             if (!Array.isArray(data) || data.length === 0) {
                 console.error("轨迹数据格式错误或为空");
@@ -101,7 +101,7 @@ async function loadTrajectories(
                 const lat = parseFloat(item.latitude);
                 const alt = parseFloat(item.altitude) || 0;
                 let timeMs = NaN;
-                if (item.timestamp && item.timeStamp.$numberLong) {
+                if (item.timeStamp && item.timeStamp.$numberLong) {
                     timeMs = Number(item.timeStamp.$numberLong);
                 } else if (item.time) {
                     const d = new Date(item.time.replace(" ", "T"));
@@ -232,12 +232,27 @@ async function loadTrajectories(
             viewer.clock.shouldAnimate = true;
 
             if (vehicleEntities.length > 0) {
-                viewer.trackedEntity = vehicleEntities[0];
-                await viewer.flyTo(vehicleEntities[0], { duration: 1.5 });
-                console.log(
-                    "Trajectories loaded, entities:",
-                    vehicleEntities.length
-                );
+                const target = vehicleEntities[5];
+                // ❗ 禁用 trackedEntity
+                viewer.trackedEntity = undefined;
+                viewer.clock.onTick.addEventListener(() => {
+                    const time = viewer.clock.currentTime;
+                    const position = target.position?.getValue(time);
+                    const orientation = target.orientation?.getValue(time);
+                    if (!position || !orientation) return;
+                    // 1️⃣ 从四元数得到 heading（绕 Z 轴的朝向）
+                    const hpr =
+                        Cesium.HeadingPitchRoll.fromQuaternion(orientation);
+                    // ⚠️ glTF 通常前向是 -Z，所以需要修正 180° 或 90°
+                    const heading = hpr.heading + Cesium.Math.PI; // 车尾方向
+                    const pitch = Cesium.Math.toRadians(-15); // 稍微俯视
+                    const range = 10; // 距离车 40 米
+                    // 2️⃣ 核心：相机锁定在车辆局部坐标系
+                    viewer.camera.lookAt(
+                        position,
+                        new Cesium.HeadingPitchRange(heading, pitch, range)
+                    );
+                });
             }
             return vehicleEntities;
         } catch (err) {
@@ -247,7 +262,7 @@ async function loadTrajectories(
 }
 
 /**
- * 视频车辆映射
+ * 视频车辆实时映射
  *
  */
 function spawnRealtimeVehicle(type: string = "car", lifeSeconds = 15) {
@@ -257,14 +272,14 @@ function spawnRealtimeVehicle(type: string = "car", lifeSeconds = 15) {
         // ===== 1. 定义一条“虚拟车道”（和你道路对齐即可）=====
         // Cesium.Cartesian3.fromDegrees, 把 WGS84 经纬度坐标 转换为 Cesium 世界坐标（ECEF）
         const start = Cesium.Cartesian3.fromDegrees(
-            117.48463609349766,
-            40.44651364265419,
-            628
+            117.48339,
+            40.445983,
+            587.21
         );
         const end = Cesium.Cartesian3.fromDegrees(
-            117.48359783531319,
-            40.444505529345484,
-            628
+            117.481602,
+            40.443692,
+            591.05
         );
         //116.391, 39.9, 100   39.902
 
