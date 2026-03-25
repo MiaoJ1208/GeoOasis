@@ -88,6 +88,9 @@ export const useSetup = () => {
         // cesiumViewer.scene.globe.depthTestAgainstTerrain = true;
         window.cesiumViewer = cesiumViewer;
         store.editor.attachViewer(cesiumViewer);
+        // 暴露 editor 到全局，方便在控制台调试（临时）
+        // 在调试结束后可移除这行
+        (window as any).geoEditor = store.editor;
         viewer = cesiumViewer;
         store.toolBox.registerTool(new BufferTool());
         store.toolBox.registerTool(new HeatMapTool());

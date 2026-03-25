@@ -33,13 +33,18 @@ export const defaultAsset: Asset[] = [
     },
     {
         id: "asset-6",
-        name: "ligan",
+        name: "pole",
         url: "ligan/LiGan_A.gltf"
     },
     {
         id: "asset-7",
         name: "signs",
         url: "/signs/c280dde26e4e4a0185d791318a20008d.gltf"
+    },
+    {
+        id: "asset-8",
+        name: "truck",
+        url: "truckModel.glb"
     }
 ];
 

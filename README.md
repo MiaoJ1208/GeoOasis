@@ -18,4 +18,6 @@ pnpm dev
 pnpm build
 
 pnpm preview
+
+pnpm dev:all
 ```
