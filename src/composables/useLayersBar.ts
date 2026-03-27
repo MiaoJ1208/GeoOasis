@@ -16,7 +16,8 @@ export const useLayersBar = () => {
         selectedLayer,
         elementArray,
         layersArray,
-        imageryLayersArray
+        imageryLayersArray,
+        isTrafficAnalysis
     } = storeToRefs(store);
     const { editor } = store;
 
@@ -38,7 +39,9 @@ export const useLayersBar = () => {
                 Cartesian3.fromElements(p.x, p.y, p.z)
             );
             const sphere = BoundingSphere.fromPoints(cartesians);
-            editor.viewer?.camera.flyToBoundingSphere(sphere, { duration: 1.5 });
+            editor.viewer?.camera.flyToBoundingSphere(sphere, {
+                duration: 1.5
+            });
         }
     };
 
@@ -51,7 +54,7 @@ export const useLayersBar = () => {
 
     const selectTerrain = (terrain: TerrainOption) => {
         editor.setTerrain(terrain);
-    }
+    };
 
     return {
         selectedTerrain,
@@ -62,5 +65,6 @@ export const useLayersBar = () => {
         handleSelect,
         handleDelete,
         selectTerrain,
+        isTrafficAnalysis
     };
 };

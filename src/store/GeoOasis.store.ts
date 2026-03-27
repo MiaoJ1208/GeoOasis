@@ -51,6 +51,7 @@ export const useGeoOasisStore = defineStore("viewer", () => {
     const assetsOption = computed(() => defaultAsset.concat(assetState.value));
 
     const cursorPosition = ref({ lng: 0.0, lat: 0.0, height: 0.0 });
+    const isTrafficAnalysis = ref(false);
 
     return {
         editor,
@@ -74,6 +75,7 @@ export const useGeoOasisStore = defineStore("viewer", () => {
         assetsOption,
         setUser,
         setUserPosition,
-        cursorPosition
+        cursorPosition,
+        isTrafficAnalysis
     };
 });

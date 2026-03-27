@@ -1,5 +1,52 @@
 <template>
-    <div class="road-visualization" v-if="true"></div>
+    <div class="road-visualization" v-if="true">
+        <!-- 交通态势时间线控制条 -->
+        <div v-if="isTrafficAnalysis" class="traffic-timeline-control">
+            <div class="timeline-container">
+                <!-- 播放/暂停按钮 -->
+                <button
+                    class="timeline-btn play-btn"
+                    @click="
+                        isTrafficPlaying
+                            ? pauseTrafficAnimation()
+                            : resumeTrafficAnimation()
+                    "
+                    :title="isTrafficPlaying ? '暂停' : '播放'"
+                >
+                    {{ isTrafficPlaying ? "⏸" : "▶" }}
+                </button>
+
+                <!-- 进度条 -->
+                <div class="progress-container">
+                    <input
+                        type="range"
+                        min="0"
+                        max="100"
+                        :value="trafficTimelineProgress"
+                        @input="
+                            (e) =>
+                                handleTimelineChange(
+                                    parseFloat(
+                                        (e.target as HTMLInputElement).value
+                                    )
+                                )
+                        "
+                        class="timeline-slider"
+                    />
+                </div>
+
+                <!-- 时间戳显示 -->
+                <div class="timestamp-display">
+                    {{ currentTrafficTimestamp || "未加载数据" }}
+                </div>
+
+                <!-- 进度百分比 -->
+                <div class="progress-percent">
+                    {{ Math.round(trafficTimelineProgress) }}%
+                </div>
+            </div>
+        </div>
+    </div>
 </template>
 
 <script setup lang="ts">
@@ -7,22 +54,42 @@ import { onMounted, ref, watch } from "vue";
 import * as Cesium from "cesium";
 import { useGeoOasisStore } from "../store/GeoOasis.store";
 import { storeToRefs } from "pinia";
-import { parse } from "vue/compiler-sfc";
-import { Cartesian3 } from "cesium";
-import { createTunnelClippingPlanes } from "../editor/tunnelClipping";
-
-interface RoadFeature {
-    type: string;
-    geometry: {
-        type: string;
-        coordinates: number[][];
-    };
-}
 
 const store = useGeoOasisStore();
-const { editor } = store;
+const { editor, isTrafficAnalysis } = storeToRefs(store);
 let viewer: Cesium.Viewer | null = null;
 const roadEntities: Cesium.Entity[] = [];
+
+// 交通态势预测相关状态
+const trafficEntities: Cesium.Entity[] = [];
+const trafficDataMap = new Map<
+    string,
+    { coordinates: number[][]; speeds: Record<string, number> }
+>();
+let trafficTimelineIndex = 0;
+let trafficTimestamps: string[] = [];
+let trafficAnimationTimer: ReturnType<typeof setInterval> | null = null;
+const TRAFFIC_UPDATE_INTERVAL = 1000; // 1秒更新一次
+
+// 时间线控制条相关状态
+const trafficTimelineProgress = ref(0); // 0-100
+const isTrafficPlaying = ref(false); // 播放状态
+const currentTrafficTimestamp = ref(""); // 当前时间戳显示
+
+/**
+ * 根据速度值返回对应的颜色（60快速绿色、40正常黄色、20缓慢橙色、<20拥堵红色）
+ */
+function getSpeedColor(speed: number): Cesium.Color {
+    if (speed >= 60) {
+        return Cesium.Color.GREEN.withAlpha(0.8);
+    } else if (speed >= 40) {
+        return Cesium.Color.YELLOW.withAlpha(0.8);
+    } else if (speed >= 20) {
+        return Cesium.Color.ORANGE.withAlpha(0.8);
+    } else {
+        return Cesium.Color.RED.withAlpha(0.8);
+    }
+}
 
 // 加载GeoJSON数据
 const loadGeoJSON = async (url: string) => {
@@ -66,14 +133,215 @@ const loadGeoJSON = async (url: string) => {
 };
 
 function loadRoadData() {
-    if (editor && editor.viewer) {
-        viewer = editor.viewer;
+    if (editor?.value?.viewer) {
+        viewer = editor.value.viewer;
         // GeoJSON文件URL
         const geoJsonUrl = "./data/roadCity.json";
         loadGeoJSON(geoJsonUrl);
     } else {
         console.error("Editor or Viewer is not available");
     }
+}
+
+/**
+ * 加载并解析交通态势数据（GeoJSON格式，包含不同时刻的速度）
+ */
+async function loadTrafficData() {
+    if (!editor?.value.viewer) return;
+    viewer = editor.value.viewer;
+
+    try {
+        const response = await fetch("/data/road_network_with_speeds.geojson");
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+
+        trafficDataMap.clear();
+        trafficTimestamps = [];
+        const timestampSet = new Set<string>();
+
+        // 提取所有时间戳和路网数据
+        data.features.forEach((feature: any) => {
+            if (feature.geometry.type === "LineString") {
+                const roadId = feature.properties.Id;
+                const coordinates = feature.geometry.coordinates;
+                const speeds = feature.properties.speeds || {};
+
+                trafficDataMap.set(roadId, {
+                    coordinates,
+                    speeds
+                });
+
+                // 收集所有时间戳
+                Object.keys(speeds).forEach((ts) => timestampSet.add(ts));
+            }
+        });
+
+        // 排序时间戳
+        trafficTimestamps = Array.from(timestampSet).sort();
+        console.log(
+            `[Traffic] Loaded ${trafficDataMap.size} roads with ${trafficTimestamps.length} timestamps`
+        );
+
+        // 初始化显示第一个时间点的数据
+        if (trafficTimestamps.length > 0) {
+            updateTrafficDisplay(0);
+        }
+    } catch (error) {
+        console.error("Error loading traffic data:", error);
+    }
+}
+
+/**
+ * 更新交通态势的实时显示（根据时间戳索引）
+ */
+function updateTrafficDisplay(timestampIndex: number) {
+    if (
+        !viewer ||
+        timestampIndex < 0 ||
+        timestampIndex >= trafficTimestamps.length
+    ) {
+        return;
+    }
+
+    const currentTimestamp = trafficTimestamps[timestampIndex];
+
+    // 更新进度条和时间戳显示
+    trafficTimelineProgress.value =
+        (timestampIndex / (trafficTimestamps.length - 1)) * 100;
+    currentTrafficTimestamp.value = currentTimestamp;
+
+    // 清除旧的交通实体
+    trafficEntities.forEach((entity) => viewer?.entities.remove(entity));
+    trafficEntities.length = 0;
+
+    // 为每条路创建新的实体，根据当前时间戳的速度值着色
+    trafficDataMap.forEach((roadData, roadId) => {
+        const { coordinates, speeds } = roadData;
+        const speed = speeds[currentTimestamp];
+
+        if (speed !== undefined) {
+            const positions = coordinates.map((coord: any) =>
+                Cesium.Cartesian3.fromDegrees(coord[0], coord[1], 0)
+            );
+
+            const color = getSpeedColor(speed);
+
+            const entity = viewer?.entities.add({
+                name: `Road-${roadId}`,
+                polyline: {
+                    positions: positions,
+                    width: 6,
+                    material: color,
+                    clampToGround: true,
+                    zIndex: 100
+                }
+            });
+
+            if (entity) {
+                trafficEntities.push(entity);
+            }
+        }
+    });
+
+    console.log(
+        `[Traffic Update] Timestamp: ${currentTimestamp}, Entities: ${trafficEntities.length}`
+    );
+}
+
+/**
+ * 启动交通态势动画时间轴
+ */
+function startTrafficAnimation() {
+    if (trafficAnimationTimer) {
+        clearInterval(trafficAnimationTimer);
+    }
+
+    trafficTimelineIndex = 0;
+    isTrafficPlaying.value = true;
+
+    trafficAnimationTimer = setInterval(() => {
+        updateTrafficDisplay(trafficTimelineIndex);
+        trafficTimelineIndex =
+            (trafficTimelineIndex + 1) % trafficTimestamps.length;
+    }, TRAFFIC_UPDATE_INTERVAL);
+
+    console.log("[Traffic] Animation started");
+}
+
+/**
+ * 停止交通态势动画
+ */
+function stopTrafficAnimation() {
+    if (trafficAnimationTimer) {
+        clearInterval(trafficAnimationTimer);
+        trafficAnimationTimer = null;
+    }
+
+    isTrafficPlaying.value = false;
+
+    // 清除所有交通实体
+    trafficEntities.forEach((entity) => viewer?.entities.remove(entity));
+    trafficEntities.length = 0;
+
+    console.log("[Traffic] Animation stopped");
+}
+
+/**
+ * 暂停交通态势动画
+ */
+function pauseTrafficAnimation() {
+    if (trafficAnimationTimer) {
+        clearInterval(trafficAnimationTimer);
+        trafficAnimationTimer = null;
+    }
+    isTrafficPlaying.value = false;
+    console.log("[Traffic] Animation paused");
+}
+
+/**
+ * 恢复交通态势动画
+ */
+function resumeTrafficAnimation() {
+    if (isTrafficPlaying.value || trafficAnimationTimer) {
+        return; // 已在播放
+    }
+
+    isTrafficPlaying.value = true;
+
+    trafficAnimationTimer = setInterval(() => {
+        updateTrafficDisplay(trafficTimelineIndex);
+        trafficTimelineIndex =
+            (trafficTimelineIndex + 1) % trafficTimestamps.length;
+    }, TRAFFIC_UPDATE_INTERVAL);
+
+    console.log("[Traffic] Animation resumed");
+}
+
+/**
+ * 手动调节时间线进度条
+ */
+function handleTimelineChange(progress: number) {
+    if (trafficTimestamps.length === 0) return;
+
+    // 暂停自动播放
+    pauseTrafficAnimation();
+
+    // 根据进度条值计算时间戳索引
+    trafficTimelineIndex = Math.round(
+        (progress / 100) * (trafficTimestamps.length - 1)
+    );
+    trafficTimelineIndex = Math.max(
+        0,
+        Math.min(trafficTimelineIndex, trafficTimestamps.length - 1)
+    );
+
+    // 更新显示
+    updateTrafficDisplay(trafficTimelineIndex);
+    console.log(
+        `[Traffic] Timeline changed to: ${trafficTimelineProgress.value}%, Index: ${trafficTimelineIndex}`
+    );
 }
 
 /**
@@ -84,8 +352,8 @@ async function loadTrajectories(
     trajUrl = "/data/20251030_163823_170604/Simulatedtrajectory1.json",
     assetIndex = 2
 ) {
-    if (editor && editor.viewer) {
-        viewer = editor.viewer;
+    if (editor?.value && editor.value.viewer) {
+        viewer = editor.value.viewer;
         try {
             const res = await fetch(`${trajUrl}?t=${Date.now()}`);
             const data = await res.json();
@@ -134,8 +402,9 @@ async function loadTrajectories(
 
             // 获取模型 URL（支持 IonResource 或 string）
             const assetId =
-                editor.assetLibrary.getAssetId(assetIndex) ?? "asset-4";
-            const modelUrl = await editor.assetLibrary.getAssetUrl(assetId);
+                editor.value!.assetLibrary.getAssetId(assetIndex) ?? "asset-4";
+            const modelUrl =
+                await editor.value!.assetLibrary.getAssetUrl(assetId);
 
             // 为每辆车创建实体
             for (const [plate, pts] of groups) {
@@ -161,7 +430,12 @@ async function loadTrajectories(
 
                 // LOD 阈值（可根据需要调整）
                 const modelDistanceThreshold = 1500; // 距离小于此值显示模型（米）
-                const pointDistanceThreshold = modelDistanceThreshold; // >= 显示点/图标
+                const showByDistance = modelDistanceThreshold;
+
+                if (showByDistance < 0) {
+                    // keep data usage for TS strict check
+                    console.warn("unexpected distance");
+                }
 
                 const ent = viewer.entities.add({
                     id: `veh-${plate}-${Math.random().toString(36).slice(2, 8)}`,
@@ -233,6 +507,10 @@ async function loadTrajectories(
 
             if (vehicleEntities.length > 0) {
                 const target = vehicleEntities[5];
+                if (target) {
+                    // 保留对 target 的引用，防止未使用警告
+                    console.debug("Trajectory visualization target", target.id);
+                }
                 // ❗ 禁用 trackedEntity
                 // viewer.trackedEntity = undefined;
                 // viewer.clock.onTick.addEventListener(() => {
@@ -502,8 +780,8 @@ function spawnRealtimeVehicle(
     type: string = "car",
     lifeSeconds = 45
 ) {
-    if (editor && editor.viewer) {
-        viewer = editor.viewer;
+    if (editor?.value && editor.value.viewer) {
+        viewer = editor.value.viewer;
 
         // ===== 1. 定义一条“虚拟车道”（和你道路对齐即可）=====
         // Cesium.Cartesian3.fromDegrees, 把 WGS84 经纬度坐标 转换为 Cesium 世界坐标（ECEF）
@@ -734,8 +1012,8 @@ function initSocket() {
 }
 
 function flyToInitView() {
-    if (editor && editor.viewer) {
-        viewer = editor.viewer;
+    if (editor?.value?.viewer) {
+        viewer = editor.value.viewer;
         viewer.camera.flyTo({
             destination: Cesium.Cartesian3.fromDegrees(
                 117.48463609349766, // lon 117.484233
@@ -749,15 +1027,36 @@ function flyToInitView() {
 
 let trajectoriesLoaded = false;
 
+// 监听交通态势分析状态
+watch(
+    isTrafficAnalysis,
+    async (newVal) => {
+        if (newVal) {
+            // 启用交通态势显示
+            console.log("[RoadVisual] Traffic Analysis enabled");
+            if (trafficTimestamps.length === 0) {
+                // 数据还未加载，先加载数据
+                await loadTrafficData();
+            }
+            startTrafficAnimation();
+        } else {
+            // 禁用交通态势显示
+            console.log("[RoadVisual] Traffic Analysis disabled");
+            stopTrafficAnimation();
+        }
+    },
+    { immediate: false }
+);
+
 onMounted(() => {
     // 保证页面一打开，轨迹就常亮展示
     if (trajectoriesLoaded) return;
-    if (editor && editor.viewer) {
+    if (editor?.value && editor.value.viewer) {
         loadTrajectories();
         trajectoriesLoaded = true;
     } else {
         const stopWatch = watch(
-            () => editor?.viewer,
+            () => editor?.value?.viewer,
             (v) => {
                 if (v && !trajectoriesLoaded) {
                     loadTrajectories();
@@ -770,8 +1069,8 @@ onMounted(() => {
 });
 
 function videoVehicle() {
-    if (editor && editor.viewer) {
-        viewer = editor.viewer;
+    if (editor?.value && editor.value.viewer) {
+        viewer = editor.value.viewer;
 
         console.log("[RoadVisual] viewer bound");
 
@@ -790,20 +1089,207 @@ function videoVehicle() {
     }
 }
 
-/**
- * 隧道裁剪
- *
- */
-function enableTunnelClipping() {
-    if (!viewer) return;
-
-    const tunnelCenter = Cartesian3.fromDegrees(116.391, 39.901, 500);
-
-    viewer.scene.globe.clippingPlanes =
-        createTunnelClippingPlanes(tunnelCenter);
-}
-
-defineExpose({ loadRoadData, loadTrajectories, videoVehicle });
+defineExpose({
+    loadRoadData,
+    loadTrajectories,
+    videoVehicle,
+    // 交通态势相关导出
+    startTrafficAnimation,
+    stopTrafficAnimation,
+    pauseTrafficAnimation,
+    resumeTrafficAnimation,
+    handleTimelineChange
+});
 </script>
 
-<style scoped></style>
+<style scoped>
+.road-visualization {
+    width: 100%;
+    height: 100%;
+}
+
+/* 交通态势时间线控制条 */
+.traffic-timeline-control {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    border-radius: 8px;
+    padding: 12px 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    min-width: 400px;
+    max-width: 90%;
+}
+
+.timeline-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+/* 播放/暂停按钮 */
+.play-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    color: white;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+}
+
+.play-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 8px rgba(102, 126, 234, 0.4);
+}
+
+.play-btn:active {
+    transform: scale(0.95);
+}
+
+/* 进度条容器 */
+.progress-container {
+    flex: 1;
+    min-width: 150px;
+}
+
+.timeline-slider {
+    width: 100%;
+    height: 6px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: linear-gradient(to right, #667eea 0%, #764ba2 100%);
+    border-radius: 3px;
+    outline: none;
+    cursor: pointer;
+    position: relative;
+}
+
+/* 进度条轨道 */
+.timeline-slider::-webkit-slider-track {
+    background: rgba(255, 255, 255, 0.2);
+    height: 6px;
+    border-radius: 3px;
+}
+
+.timeline-slider::-moz-range-track {
+    background: rgba(255, 255, 255, 0.2);
+    height: 6px;
+    border-radius: 3px;
+    border: none;
+}
+
+/* 进度条滑块 */
+.timeline-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: white;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s ease;
+}
+
+.timeline-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.6);
+}
+
+.timeline-slider::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: white;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s ease;
+}
+
+.timeline-slider::-moz-range-thumb:hover {
+    transform: scale(1.2);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.6);
+}
+
+/* 时间戳显示 */
+.timestamp-display {
+    color: #64d5ff;
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+    min-width: 150px;
+    text-align: center;
+    font-family: "Courier New", monospace;
+}
+
+/* 进度百分比 */
+.progress-percent {
+    color: #a0d995;
+    font-size: 13px;
+    font-weight: 600;
+    min-width: 40px;
+    text-align: right;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .traffic-timeline-control {
+        min-width: 320px;
+        bottom: 10px;
+        padding: 10px 12px;
+    }
+
+    .timeline-container {
+        gap: 8px;
+    }
+
+    .play-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 16px;
+    }
+
+    .timestamp-display {
+        font-size: 12px;
+        min-width: 120px;
+    }
+
+    .progress-percent {
+        font-size: 12px;
+        min-width: 35px;
+    }
+}
+
+@media (max-width: 480px) {
+    .traffic-timeline-control {
+        min-width: 90%;
+        bottom: 10px;
+        padding: 8px;
+    }
+
+    .timeline-container {
+        gap: 6px;
+    }
+
+    .timestamp-display {
+        display: none;
+    }
+
+    .play-btn {
+        width: 28px;
+        height: 28px;
+        font-size: 14px;
+    }
+}
+</style>

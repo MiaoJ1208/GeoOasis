@@ -17,7 +17,8 @@ const {
     imageryLayersArray,
     handleSelect,
     handleDelete,
-    selectTerrain
+    selectTerrain,
+    isTrafficAnalysis
 } = useLayersBar();
 
 const baseMapOptions = ["Bing", "ArcGIS", "Local"];
@@ -142,6 +143,13 @@ async function runMerge() {
             <Button @click="$emit('load-video-vehicle')">
                 <Icon icon="material-symbols:integration-instructions" />
                 视频数据映射
+            </Button>
+        </div>
+        <Separator />
+        <div>
+            <Button @click="isTrafficAnalysis = !isTrafficAnalysis">
+                <Icon icon="material-symbols:integration-instructions" />
+                交通态势预测
             </Button>
         </div>
         <Separator />
