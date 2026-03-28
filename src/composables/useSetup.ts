@@ -8,7 +8,10 @@ import {
     ScreenSpaceEventHandler,
     ScreenSpaceEventType,
     Cartographic,
-    Math as CesiumMath
+    Math as CesiumMath,
+    CallbackProperty,
+    DistanceDisplayCondition,
+    Color
 } from "cesium";
 import { useGeoOasisStore } from "../store/GeoOasis.store";
 import { useSceneHelper } from "../composables/useSceneHelper";
@@ -86,6 +89,36 @@ export const useSetup = () => {
         // cesiumViewer.scene.globe.depthTestAgainstTerrain = false;
 
         // cesiumViewer.scene.globe.depthTestAgainstTerrain = true;
+
+        // 4. 动态调节地表透明度根据相机距离特定点的距离
+        const referencePoint = Cartesian3.fromDegrees(
+            117.48463609349766,
+            40.44651364265419,
+            628
+        );
+        const updateGlobeTranslucency = () => {
+            const cameraPosition = cesiumViewer.scene.camera.position;
+            const distance = Cartesian3.distance(
+                cameraPosition,
+                referencePoint
+            );
+            // 根据距离调整透明度：距离越近透明度越低（更不透明）
+            const thresholdDistance = 1000; // 阈值距离 (米)
+            let alpha = 1; // 默认透明度
+            if (distance < thresholdDistance) {
+                alpha = 0.5; // 很近时几乎不透明
+            } else {
+                alpha = 1; // 超过阈值时保持
+            }
+            cesiumViewer.scene.globe.translucency.frontFaceAlpha = alpha;
+        };
+        // 监听相机变化
+        cesiumViewer.scene.camera.changed.addEventListener(
+            updateGlobeTranslucency
+        );
+        // 初始调用一次
+        updateGlobeTranslucency();
+
         window.cesiumViewer = cesiumViewer;
         store.editor.attachViewer(cesiumViewer);
         // 暴露 editor 到全局，方便在控制台调试（临时）

@@ -1,18 +1,14 @@
 <script setup lang="ts">
 import BoardBar from "./BoardBar.vue";
-import ToolsBar from "./ToolsBar.vue";
 import CollabBar from "./CollabBar.vue";
+import ToolsBar from "./ToolsBar.vue";
 </script>
 
 <template>
     <div class="header-container">
-        <div class="board">
-            <BoardBar />
-        </div>
-        <div class="tools">
+        <BoardBar />
+        <div class="right-section">
             <ToolsBar />
-        </div>
-        <div class="collab">
             <CollabBar />
         </div>
     </div>
@@ -28,17 +24,12 @@ import CollabBar from "./CollabBar.vue";
     gap: 20px;
     flex-direction: row;
     align-items: center;
+    justify-content: space-between;
 }
 
-.board {
-    flex: 1 100px;
-}
-
-.collab {
-    flex: 1 100px;
-}
-
-.tools {
-    flex: 8;
+.right-section {
+    display: flex;
+    gap: 20px;
+    align-items: center;
 }
 </style>

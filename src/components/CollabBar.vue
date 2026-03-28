@@ -24,7 +24,7 @@ const { synOtherUserCamera } = useSceneHelper();
 
         <ShareDialog>
             <template #trigger>
-                <span>Share</span>
+                <span>分享</span>
             </template>
         </ShareDialog>
     </div>

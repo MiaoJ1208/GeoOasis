@@ -9,6 +9,7 @@ import {
 } from "radix-vue";
 import ToolbarUploadButton from "./internals/UploadButton.vue";
 import Dialog from "./Dialog.vue";
+import ShareDialog from "./ShareDialog.vue";
 import { Icon } from "@iconify/vue";
 import { computed } from "vue";
 import { storeToRefs } from "pinia";
@@ -18,30 +19,12 @@ import { useYjs } from "../composables/useYjs";
 import { DrawMode, GizmoMode } from "../editor/type";
 
 const toolOptions = [
-    {
-        label: "default",
-        icon: "gis:arrow-o"
-    },
-    {
-        label: "marker",
-        icon: "gis:poi-alt"
-    },
-    {
-        label: "point",
-        icon: "gis:point"
-    },
-    {
-        label: "polyline",
-        icon: "gis:polyline-pt"
-    },
-    {
-        label: "polygon",
-        icon: "gis:polygon-pt"
-    },
-    {
-        label: "model",
-        icon: "gis:shape-file"
-    }
+    { value: "default", label: "默认", icon: "gis:arrow-o" },
+    { value: "marker", label: "标记", icon: "gis:poi-alt" },
+    { value: "point", label: "点", icon: "gis:point" },
+    { value: "polyline", label: "折线", icon: "gis:polyline-pt" },
+    { value: "polygon", label: "多边形", icon: "gis:polygon-pt" },
+    { value: "model", label: "模型", icon: "gis:shape-file" }
 ];
 const gizmoModeOptions = [
     {
@@ -120,19 +103,25 @@ const modelBarVisible = computed(() => activeTool.value === "model");
             <ToolbarToggleItem
                 class="ToolbarToggleItem"
                 v-for="item in toolOptions"
-                :value="item.label"
+                :value="item.value"
+                :title="item.label"
             >
                 <Icon :icon="item.icon" />
             </ToolbarToggleItem>
         </ToolbarToggleGroup>
         <ToolbarSeparator class="ToolbarSeparator" />
+        <!-- <ShareDialog>
+            <template #trigger>
+                <ToolbarButton class="ToolbarButton">分享</ToolbarButton>
+            </template>
+        </ShareDialog> -->
         <ToolbarUploadButton v-model="selectedFile">
-            Upload
+            上传
             <Icon icon="gis:3dtiles-file" />
         </ToolbarUploadButton>
         <Dialog>
             <template #trigger>
-                <span>Url</span>
+                <span>链接</span>
                 <Icon icon="gis:search-feature" />
             </template>
         </Dialog>
@@ -141,14 +130,14 @@ const modelBarVisible = computed(() => activeTool.value === "model");
             style="margin-left: auto"
             @click="undo"
         >
-            Undo
+            撤销
         </ToolbarButton>
         <ToolbarButton
             class="ToolbarButton"
             style="margin-left: 10px"
             @click="redo"
         >
-            Redo
+            恢复
         </ToolbarButton>
     </ToolbarRoot>
     <div v-show="modelBarVisible" class="ModelBar">

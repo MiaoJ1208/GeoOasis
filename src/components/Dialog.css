@@ -8,6 +8,7 @@ input {
 .btn {
   flex: 0 0 auto;
   color: var(--mauve-11);
+  background: rgba(173, 216, 230, 0.9);
   height: 25px;
   padding: 0 5px;
   border-radius: 4px;
@@ -19,25 +20,25 @@ input {
 }
 
 .btn:hover {
-  background-color: var(--grass-4);
-  color: var(--grass-12);
+  background-color: rgba(173, 216, 230, 0.9);
+  color: rgba(173, 216, 230, 0.9);
 }
 
 .btn:focus {
   position: relative;
-  box-shadow: 0 0 0 2px var(--grass-8);
+  box-shadow: 0 0 0 2px rgba(173, 216, 230, 0.9);
 }
 
 .btn {
   padding-left: 10px;
   padding-right: 10px;
-  color: white;
-  background-color: var(--grass-9);
+  color: rgb(12, 6, 6);
+  background-color: var(#1781ff);
 }
 
 .btn:hover {
   color: white;
-  background-color: var(--grass-10);
+  background-color: rgba(173, 216, 230, 0.9);
 }
 
 .DialogOverlay {
@@ -94,7 +95,7 @@ input {
 
 .Button.grass {
   background-color: white;
-  color: var(--grass-11);
+  color: rgba(173, 216, 230, 0.9);
   box-shadow: 0 2px 10px var(--black-a7);
 }
 
@@ -107,16 +108,16 @@ input {
 }
 
 .Button.green {
-  background-color: var(--green-4);
-  color: var(--green-11);
+  background-color:rgba(173, 216, 230, 0.9);
+  color: black;
 }
 
 .Button.green:hover {
-  background-color: var(--green-5);
+  background-color: rgba(173, 216, 230, 0.9);
 }
 
 .Button.green:focus {
-  box-shadow: 0 0 0 2px var(--green-7);
+  box-shadow: 0 0 0 2px rgba(173, 216, 230, 0.9);
 }
 
 .IconButton {
@@ -127,18 +128,18 @@ input {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: var(--grass-11);
+  color: rgba(173, 216, 230, 0.9);
   position: absolute;
   top: 10px;
   right: 10px;
 }
 
 .IconButton:hover {
-  background-color: var(--grass-4);
+  background-color:rgba(173, 216, 230, 0.9);
 }
 
 .IconButton:focus {
-  box-shadow: 0 0 0 2px var(--grass-7);
+  box-shadow: 0 0 0 2px rgba(173, 216, 230, 0.9);
 }
 
 .Fieldset {
@@ -150,7 +151,7 @@ input {
 
 .Label {
   font-size: 15px;
-  color: var(--grass-11);
+  color: #1781ff;
   /* width: 90px; */
   text-align: right;
 }
@@ -165,13 +166,13 @@ input {
   padding: 0 10px;
   font-size: 15px;
   line-height: 1;
-  color: var(--grass-11);
-  box-shadow: 0 0 0 1px var(--grass-7);
+  color: rgba(173, 216, 230, 0.9);
+  box-shadow: 0 0 0 1px #1781ff;
   height: 35px;
 }
 
 .Input:focus {
-  box-shadow: 0 0 0 2px var(--grass-8);
+  box-shadow: 0 0 0 2px #1781ff;
 }
 
 @keyframes overlayShow {

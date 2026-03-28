@@ -25,9 +25,8 @@ function handleClick() {
 
 <template>
     <MenubarRoot v-model="currentMenu" class="MenubarRoot">
-        <div class="brand">GeoOasis</div>
         <MenubarMenu value="file">
-            <MenubarTrigger class="MenubarTrigger">File</MenubarTrigger>
+            <MenubarTrigger class="MenubarTrigger">文件</MenubarTrigger>
             <MenubarPortal>
                 <MenubarContent
                     class="MenubarContent"
@@ -49,7 +48,7 @@ function handleClick() {
                     <MenubarSeparator class="MenubarSeparator" />
                     <MenubarSub>
                         <MenubarSubTrigger class="MenubarItem">
-                            Share
+                            分享
                             <div class="RightSlot">
                                 <Icon icon="radix-icons:chevron-right" />
                             </div>
@@ -81,7 +80,7 @@ function handleClick() {
         </MenubarMenu>
 
         <MenubarMenu value="edit">
-            <MenubarTrigger class="MenubarTrigger">Edit</MenubarTrigger>
+            <MenubarTrigger class="MenubarTrigger">编辑</MenubarTrigger>
             <MenubarPortal>
                 <MenubarContent
                     class="MenubarContent"
@@ -137,7 +136,7 @@ function handleClick() {
 
         <MenubarMenu value="setting">
             <MenubarTrigger class="MenubarTrigger" @click="handleClick">
-                Setting
+                设置
             </MenubarTrigger>
         </MenubarMenu>
     </MenubarRoot>

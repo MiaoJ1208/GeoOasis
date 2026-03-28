@@ -3,10 +3,14 @@ import Editor from "./components/Editor.vue";
 import AppHeader from "./components/AppHeader.vue";
 import FooterBar from "./components/FooterBar.vue";
 import LayersBar from "./components/LayersBar.vue";
+import DataPanel from "./components/DataPanel.vue";
+import FlyToPanel from "./components/FlyToPanel.vue";
 import InfoPanel from "./components/InfoPanel.vue";
 import RoadVisual from "./components/RoadVisual.vue";
+import { useGeoOasisStore } from "./store/GeoOasis.store";
 import { ref } from "vue";
 const roadVisualRef = ref();
+const store = useGeoOasisStore();
 function onLoadRoad() {
     roadVisualRef.value?.loadRoadData();
 }
@@ -19,10 +23,49 @@ function handleLoadRoad() {
 function videoVehicle() {
     roadVisualRef.value?.videoVehicle();
 }
+
+async function runMerge() {
+    try {
+        const res = await fetch("/run-merge", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            }
+        });
+
+        if (!res.ok) {
+            const errorData = await res
+                .json()
+                .catch(() => ({ message: res.statusText }));
+            throw new Error(errorData.message || `HTTP ${res.status}`);
+        }
+
+        const data = await res.json();
+        console.log("run-merge response:", data);
+
+        if (data.success) {
+            alert(`融合解析执行成功！\n${data.message || ""}`);
+        } else {
+            alert(
+                `融合解析执行失败：\n${data.message || data.error || "未知错误"}`
+            );
+        }
+    } catch (err: any) {
+        console.error("run-merge error:", err);
+        alert(
+            `触发失败：${err.message || "请确认后端服务已启动（运行 pnpm run-bat-server）"}`
+        );
+    }
+}
+
+function toggleTrafficAnalysis() {
+    store.isTrafficAnalysis = !store.isTrafficAnalysis;
+}
 </script>
 
 <template>
     <div class="geoasis-app">
+        <div class="global-title">公路交通数字孪生智能平台</div>
         <Editor>
             <AppHeader />
             <LayersBar
@@ -30,8 +73,16 @@ function videoVehicle() {
                 @load-car-trajectories="handleLoadRoad"
                 @load-video-vehicle="videoVehicle"
             />
+            <DataPanel
+                @load-road="onLoadRoad"
+                @load-car-trajectories="handleLoadRoad"
+                @run-merge="runMerge"
+                @load-video-vehicle="videoVehicle"
+                @toggle-traffic-analysis="toggleTrafficAnalysis"
+            />
             <InfoPanel />
             <RoadVisual ref="roadVisualRef" />
+            <FlyToPanel />
             <FooterBar />
         </Editor>
     </div>
@@ -41,5 +92,22 @@ function videoVehicle() {
 .geoasis-app {
     height: 100%;
     width: 100%;
+}
+
+.global-title {
+    position: fixed;
+    top: 30px;
+    left: 30%;
+    transform: translateX(-50%);
+    z-index: 1001;
+    font-size: 26px;
+    font-weight: 900;
+    color: #cce8ff;
+    letter-spacing: 1px;
+    padding: 4px 14px;
+    border-radius: 10px;
+    background: rgba(5, 22, 52, 0.9);
+    border: 1px solid rgba(72, 148, 255, 0.8);
+    box-shadow: 0 0 18px rgba(50, 142, 255, 0.35);
 }
 </style>

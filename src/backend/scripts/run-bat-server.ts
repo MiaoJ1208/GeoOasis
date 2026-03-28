@@ -5,6 +5,8 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 import { access } from "fs/promises";
+import { createServer } from "http";
+import { Hocuspocus } from "@hocuspocus/server";
 
 // ES modules 中获取 __dirname 的等效方法
 const __filename = fileURLToPath(import.meta.url);
@@ -77,9 +79,29 @@ app.post("/run-merge", async (_req: Request, res: Response) => {
     }
 });
 
-const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3001;
-app.listen(PORT, () => {
-    console.log(`run-bat-server listening http://localhost:${PORT}`);
-    console.log(`bat 文件路径: ${batPath}`);
-    console.log(`提示: 可以通过环境变量 BAT_FILE_PATH 配置 bat 文件路径`);
+const HTTP_PORT = process.env.HTTP_PORT
+    ? parseInt(process.env.HTTP_PORT)
+    : 3000;
+const HOCUSPOCUS_PORT = process.env.HOCUSPOCUS_PORT
+    ? parseInt(process.env.HOCUSPOCUS_PORT)
+    : 3001;
+
+// 启动 HTTP 服务器（用于 /run-merge 接口）
+const httpServer = createServer(app);
+httpServer.listen(HTTP_PORT, () => {
+    console.log(`✓ HTTP server listening on http://localhost:${HTTP_PORT}`);
+    console.log(`  - /run-merge endpoint available`);
 });
+
+// 启动 Hocuspocus WebSocket 服务器（用于协作）
+const hocuspocus = new Hocuspocus({
+    address: "0.0.0.0",
+    port: HOCUSPOCUS_PORT,
+    quiet: false
+} as any);
+
+console.log(
+    `✓ Hocuspocus WebSocket server listening on ws://localhost:${HOCUSPOCUS_PORT}/collab`
+);
+console.log(`bat 文件路径: ${batPath}`);
+console.log(`提示: 可以通过环境变量 BAT_FILE_PATH 配置 bat 文件路径`);

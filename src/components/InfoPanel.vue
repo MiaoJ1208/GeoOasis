@@ -189,13 +189,13 @@ input {
     line-height: 1;
     /* color: white; */
     /* background-color: var(--green-5); */
-    box-shadow: 0 0 0 1px var(--green-9);
+    box-shadow: 0 0 0 1px #1781ff;
 }
 .Input:focus {
     box-shadow: 0 0 0 2px black;
 }
 .Input::selection {
-    background-color: var(--green-9);
+    background-color: #1781ff;
     color: white;
 }
 </style>

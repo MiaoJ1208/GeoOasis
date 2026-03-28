@@ -1,12 +1,9 @@
 <script setup lang="ts">
 import { Label } from "radix-vue";
-import { Icon } from "@iconify/vue";
 import Separator from "./internals/Separator.vue";
 import Select from "./internals/Select.vue";
 import LayerBarItem from "./LayerBarItem.vue";
-import Button from "./internals/Button.vue";
 import { useLayersBar } from "../composables/useLayersBar";
-import { useCoordinateNavigation } from "../composables/useCoordinateNavigation";
 import { TerrainOption } from "../editor/terrain";
 
 const {
@@ -17,196 +14,62 @@ const {
     imageryLayersArray,
     handleSelect,
     handleDelete,
-    selectTerrain,
-    isTrafficAnalysis
+    selectTerrain
 } = useLayersBar();
 
 const baseMapOptions = ["Bing", "ArcGIS", "Local"];
 const terrainOptions = Object.values(TerrainOption);
-
-const {
-    longitude,
-    latitude,
-    height,
-    errorMessage,
-    flyToCoordinates,
-    clearInputs
-} = useCoordinateNavigation();
-
-// 新增：触发后端执行 bat 的请求（项目开发时可用代理 /run-merge）
-async function runMerge() {
-    try {
-        const res = await fetch("/run-merge", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            }
-        });
-
-        if (!res.ok) {
-            const errorData = await res
-                .json()
-                .catch(() => ({ message: res.statusText }));
-            throw new Error(errorData.message || `HTTP ${res.status}`);
-        }
-
-        const data = await res.json();
-        console.log("run-merge response:", data);
-
-        if (data.success) {
-            alert(`融合解析执行成功！\n${data.message || ""}`);
-        } else {
-            alert(
-                `融合解析执行失败：\n${data.message || data.error || "未知错误"}`
-            );
-        }
-    } catch (err: any) {
-        console.error("run-merge error:", err);
-        alert(
-            `触发失败：${err.message || "请确认后端服务已启动（运行 pnpm run-bat-server）"}`
-        );
-    }
-}
 </script>
 
 <template>
     <div class="layersbar">
-        <!-- 影像图层 -->
-        <h3>Imagery Layers</h3>
-        <Label>BaseLayer:</Label>
-        <Select
-            title="BaseMap"
-            :selected="selectedBaseLayer"
-            :select-options="baseMapOptions"
-            @update:model-value="selectedBaseLayer = $event"
-        ></Select>
-        <Separator />
-        <Label>Terrain:</Label>
-        <Select
-            title="Terrain"
-            :selected="selectedTerrain"
-            :select-options="terrainOptions"
-            @update:model-value="selectTerrain($event as TerrainOption)"
-        ></Select>
-        <LayerBarItem
-            type="layer"
-            v-for="(e, index) in imageryLayersArray"
-            :key="e.get('id') as string"
-            :index="index"
-            :item="e"
-            @handle-select="handleSelect"
-            @handle-delete="handleDelete"
-        />
-        <Separator />
-        <h3>Other Layers</h3>
-        <LayerBarItem
-            type="layer"
-            v-for="e in layersArray"
-            :key="e.get('id')"
-            :item="e"
-            @handle-select="handleSelect"
-            @handle-delete="handleDelete"
-        />
-        <Separator />
-        <h3>Elements</h3>
-        <LayerBarItem
-            type="element"
-            v-for="e in elementArray"
-            :key="e.get('id') as string"
-            :item="e"
-            @handle-select="handleSelect"
-            @handle-delete="handleDelete"
-        />
-        <Separator />
-        <div>
-            <Button @click="$emit('load-road')">
-                <Icon icon="material-symbols:location-on" />
-                加载道路数据
-            </Button>
+        <div class="left-panel">
+            <h3>影像图层</h3>
+            <Label>底图:</Label>
+            <Select
+                title="BaseMap"
+                :selected="selectedBaseLayer"
+                :select-options="baseMapOptions"
+                @update:model-value="selectedBaseLayer = $event"
+            ></Select>
+            <Separator />
+            <Label>地形:</Label>
+            <Select
+                title="地形"
+                :selected="selectedTerrain"
+                :select-options="terrainOptions"
+                @update:model-value="selectTerrain($event as TerrainOption)"
+            ></Select>
+            <LayerBarItem
+                type="layer"
+                v-for="(e, index) in imageryLayersArray"
+                :key="e.get('id') as string"
+                :index="index"
+                :item="e"
+                @handle-select="handleSelect"
+                @handle-delete="handleDelete"
+            />
+            <Separator />
+            <h3>其他图层</h3>
+            <LayerBarItem
+                type="layer"
+                v-for="e in layersArray"
+                :key="e.get('id')"
+                :item="e"
+                @handle-select="handleSelect"
+                @handle-delete="handleDelete"
+            />
+            <Separator />
+            <h3>元素</h3>
+            <LayerBarItem
+                type="element"
+                v-for="e in elementArray"
+                :key="e.get('id') as string"
+                :item="e"
+                @handle-select="handleSelect"
+                @handle-delete="handleDelete"
+            />
         </div>
-        <Separator />
-        <div>
-            <Button @click="$emit('load-car-trajectories')">
-                <Icon icon="material-symbols:location-on" />
-                轨迹数据映射
-            </Button>
-        </div>
-        <Separator />
-        <div>
-            <Button @click="runMerge">
-                <Icon icon="material-symbols:integration-instructions" />
-                融合解析
-            </Button>
-        </div>
-        <Separator />
-        <div>
-            <Button @click="$emit('load-video-vehicle')">
-                <Icon icon="material-symbols:integration-instructions" />
-                视频数据映射
-            </Button>
-        </div>
-        <Separator />
-        <div>
-            <Button @click="isTrafficAnalysis = !isTrafficAnalysis">
-                <Icon icon="material-symbols:integration-instructions" />
-                交通态势预测
-            </Button>
-        </div>
-        <Separator />
-        <div class="coordinate-navigation">
-            <h3 class="section-title">坐标定位</h3>
-            <div class="coordinate-input-group">
-                <Label class="LabelRoot" for="longitude">经度:</Label>
-                <input
-                    id="longitude"
-                    class="Input"
-                    type="number"
-                    step="any"
-                    placeholder="117.353878"
-                    v-model="longitude"
-                    @keyup.enter="flyToCoordinates"
-                />
-            </div>
-            <div class="coordinate-input-group">
-                <Label class="LabelRoot" for="latitude">纬度:</Label>
-                <input
-                    id="latitude"
-                    class="Input"
-                    type="number"
-                    step="any"
-                    placeholder="40.261073"
-                    v-model="latitude"
-                    @keyup.enter="flyToCoordinates"
-                />
-            </div>
-            <div class="coordinate-input-group">
-                <Label class="LabelRoot" for="height">高度(米):</Label>
-                <input
-                    id="height"
-                    class="Input"
-                    type="number"
-                    step="any"
-                    placeholder="例如: 1000"
-                    v-model="height"
-                    @keyup.enter="flyToCoordinates"
-                />
-            </div>
-            <div class="coordinate-actions">
-                <Button @click="flyToCoordinates" class="fly-btn">
-                    <Icon icon="material-symbols:location-on" />
-                    定位
-                </Button>
-                <Button @click="clearInputs" class="clear-btn">
-                    <Icon icon="material-symbols:clear" />
-                    清空
-                </Button>
-            </div>
-            <div v-if="errorMessage" class="error-message">
-                {{ errorMessage }}
-            </div>
-        </div>
-
-        <Separator />
     </div>
 </template>
 
@@ -217,14 +80,71 @@ async function runMerge() {
     top: 100px;
     bottom: 50px;
 
-    width: 250px;
-    /* height: calc(100% - 300px); */
-    overflow-y: auto;
+    width: 190px;
 
-    background-color: var(--grass-1);
-    box-shadow: 0 0 10px;
+    background-color: rgba(6, 18, 44, 0.92);
+    box-shadow: 0 0 24px rgba(62, 147, 255, 0.55);
+    border: 1px solid rgba(53, 121, 226, 0.9);
+    border-radius: 14px;
+    padding: 14px;
+    color: #d9ebff;
+}
+
+.left-panel {
+    background: rgba(11, 26, 57, 0.86);
+    border: 1px solid rgba(82, 146, 255, 0.7);
+    border-radius: 12px;
+    padding: 10px;
+    max-height: calc(100vh - 160px);
+    overflow-y: auto;
+}
+
+.layersbar h3,
+.layersbar h4 {
+    margin: 8px 0 8px;
+    font-size: 14px;
+    color: #aad8ff;
+}
+
+.layersbar h3,
+.layersbar h4 {
+    margin: 8px 0 8px;
+    font-size: 14px;
+    color: #aad8ff;
+}
+
+.action-panel {
+    margin-top: 10px;
+    padding: 10px;
+    background: rgba(12, 32, 67, 0.8);
+    border: 1px dashed rgba(72, 141, 248, 0.55);
     border-radius: 10px;
-    padding: 15px;
+}
+
+.action-row {
+    margin-top: 8px;
+}
+
+.action-btn {
+    width: 100%;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: linear-gradient(
+        135deg,
+        rgba(73, 143, 255, 0.95),
+        rgba(23, 113, 231, 0.9)
+    );
+    color: #ffffff;
+    border: 1px solid rgba(94, 166, 255, 0.9);
+    font-weight: 600;
+    letter-spacing: 0.4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.action-btn:hover {
+    filter: brightness(1.08);
 }
 
 /* 坐标定位功能样式 */

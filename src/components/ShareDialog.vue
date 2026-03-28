@@ -51,30 +51,28 @@ const handleConnect = () => {
         <DialogPortal>
             <DialogOverlay class="DialogOverlay" />
             <DialogContent class="DialogContent">
-                <DialogTitle class="DialogTitle">Share</DialogTitle>
+                <DialogTitle class="DialogTitle">分享至协作者</DialogTitle>
                 <DialogDescription class="DialogDescription">
-                    Share with others
+                    与其他用户协同编辑公路交通场景
                 </DialogDescription>
                 <fieldset class="Fieldset">
-                    <label class="Label" for="url">Name</label>
+                    <label class="Label" for="url">用户名</label>
                     <input
                         id="url"
                         class="Input"
-                        placeholder="please input your Name"
+                        placeholder="请输入用户名"
                         v-model="userName"
                     />
                 </fieldset>
                 <fieldset v-show="!isConnected" class="Fieldset">
-                    <Button @click="handleGenerateRoomId">
-                        Generate Room ID
-                    </Button>
+                    <Button @click="handleGenerateRoomId">生成房间ID</Button>
                 </fieldset>
                 <fieldset class="Fieldset">
-                    <label class="Label" for="url">ID</label>
+                    <label class="Label" for="url">房间ID</label>
                     <input
                         id="url"
                         class="Input"
-                        placeholder="please input Room ID or generate your Room ID"
+                        placeholder="请输入房间ID"
                         v-model="inputVal"
                         :disabled="isConnected"
                     />
@@ -88,7 +86,7 @@ const handleConnect = () => {
                 >
                     <DialogClose as-child>
                         <button class="Button green" @click="handleConnect">
-                            {{ isConnected ? "disConnect" : "Connect" }}
+                            {{ isConnected ? "断开" : "连接" }}
                         </button>
                     </DialogClose>
                 </div>
