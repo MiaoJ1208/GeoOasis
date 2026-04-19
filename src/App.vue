@@ -8,6 +8,7 @@ import FlyToPanel from "./components/FlyToPanel.vue";
 import InfoPanel from "./components/InfoPanel.vue";
 import RoadVisual from "./components/RoadVisual.vue";
 import { useGeoOasisStore } from "./store/GeoOasis.store";
+import { onMounted, watch } from "vue";
 import { ref } from "vue";
 const roadVisualRef = ref();
 const store = useGeoOasisStore();

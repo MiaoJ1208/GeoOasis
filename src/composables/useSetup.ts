@@ -78,38 +78,37 @@ export const useSetup = () => {
             baseLayer: false
         });
 
-        // 根据距离调整透明度：距离越近透明度越低（更不透明）
-        // 4. 动态调节地表透明度根据相机距离特定点的距离
-        //        监听相机变化;
         // 1. 开启地表半透明
         cesiumViewer.scene.globe.translucency.enabled = true;
         // 2. 允许相机进入地下
         cesiumViewer.scene.screenSpaceCameraController.enableCollisionDetection =
             false;
-        // 3. 模型地形深度裁剪开启
+        // 3. 地形深度裁剪开启
         cesiumViewer.scene.globe.depthTestAgainstTerrain = true;
-
+        // 4. 设置参考点（以参考点为中心，设置半径为阈值距离的球形影响域）
         const referencePoint = Cartesian3.fromDegrees(
             117.48463609349766,
             40.44651364265419,
             628
         );
         const updateGlobeTranslucency = () => {
+            // 5. 获取相机位置与参考点的距离
             const cameraPosition = cesiumViewer.scene.camera.position;
             const distance = Cartesian3.distance(
                 cameraPosition,
                 referencePoint
             );
-
-            const thresholdDistance = 1000; // 阈值距离 (米)
-            let alpha = 1; // 默认透明度
+            // 6. 根据距离调整地表透明度，小于阈值时半透明，距离超过阈值时不透明。
+            const thresholdDistance = 1000;
+            let alpha = 1;
             if (distance < thresholdDistance) {
-                alpha = 0.9; // 很近时几乎不透明
+                alpha = 0.5;
             } else {
-                alpha = 1; // 超过阈值时保持
+                alpha = 1;
             }
             cesiumViewer.scene.globe.translucency.frontFaceAlpha = alpha;
         };
+        // 6. 监听相机变化
         cesiumViewer.scene.camera.changed.addEventListener(
             updateGlobeTranslucency
         );

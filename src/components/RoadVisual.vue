@@ -64,7 +64,7 @@ const roadEntities: Cesium.Entity[] = [];
 const trafficEntities: Cesium.Entity[] = [];
 const trafficDataMap = new Map<
     string,
-    { coordinates: number[][]; speeds: Record<string, number> }
+    { coordinates: number[][]; traffic_level: Record<string, number> }
 >();
 let trafficTimelineIndex = 0;
 let trafficTimestamps: string[] = [];
@@ -90,7 +90,45 @@ function getSpeedColor(speed: number): Cesium.Color {
         return Cesium.Color.RED.withAlpha(0.8);
     }
 }
+function getSpeedColorNormalized(speed: number): Cesium.Color {
+    const minSpeed = 0.00303;
+    const maxSpeed = 39.0683;
 
+    // 归一化速度到 0~1
+    const ratio = Cesium.Math.clamp(
+        (speed - minSpeed) / (maxSpeed - minSpeed),
+        0.0,
+        1.0
+    );
+
+    // 使用渐变颜色: 红->橙->黄->绿
+    if (ratio >= 0.75) {
+        return Cesium.Color.GREEN.withAlpha(0.8);
+    } else if (ratio >= 0.5) {
+        return Cesium.Color.YELLOW.withAlpha(0.8);
+    } else if (ratio >= 0.25) {
+        return Cesium.Color.ORANGE.withAlpha(0.8);
+    } else {
+        return Cesium.Color.RED.withAlpha(0.8);
+    }
+}
+
+function getTrafficLevelColor(level: number): Cesium.Color {
+    switch (level) {
+        case 1:
+            return Cesium.Color.GREEN.withAlpha(0.8); // 畅通
+        case 2:
+            return Cesium.Color.CYAN.withAlpha(0.8); // 基本畅通
+        case 3:
+            return Cesium.Color.YELLOW.withAlpha(0.8); // 轻度拥堵
+        case 4:
+            return Cesium.Color.ORANGE.withAlpha(0.8); // 中度拥堵
+        case 5:
+            return Cesium.Color.RED.withAlpha(0.8); // 严重拥堵
+        default:
+            return Cesium.Color.GRAY.withAlpha(0.5); // 无数据
+    }
+}
 // 加载GeoJSON数据
 const loadGeoJSON = async (url: string) => {
     try {
@@ -151,7 +189,7 @@ async function loadTrafficData() {
     viewer = editor.value.viewer;
 
     try {
-        const response = await fetch("/data/road_network_with_speeds.geojson");
+        const response = await fetch("/data/road_network_with_level.geojson");
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -166,15 +204,17 @@ async function loadTrafficData() {
             if (feature.geometry.type === "LineString") {
                 const roadId = feature.properties.Id;
                 const coordinates = feature.geometry.coordinates;
-                const speeds = feature.properties.speeds || {};
+                const traffic_level = feature.properties.traffic_level || {};
 
                 trafficDataMap.set(roadId, {
                     coordinates,
-                    speeds
+                    traffic_level
                 });
 
                 // 收集所有时间戳
-                Object.keys(speeds).forEach((ts) => timestampSet.add(ts));
+                Object.keys(traffic_level).forEach((ts) =>
+                    timestampSet.add(ts)
+                );
             }
         });
 
@@ -218,15 +258,15 @@ function updateTrafficDisplay(timestampIndex: number) {
 
     // 为每条路创建新的实体，根据当前时间戳的速度值着色
     trafficDataMap.forEach((roadData, roadId) => {
-        const { coordinates, speeds } = roadData;
-        const speed = speeds[currentTimestamp];
+        const { coordinates, traffic_level } = roadData;
+        const speed = traffic_level[currentTimestamp];
 
         if (speed !== undefined) {
             const positions = coordinates.map((coord: any) =>
                 Cesium.Cartesian3.fromDegrees(coord[0], coord[1], 0)
             );
 
-            const color = getSpeedColor(speed);
+            const color = getTrafficLevelColor(speed);
 
             const entity = viewer?.entities.add({
                 name: `Road-${roadId}`,
@@ -1048,25 +1088,25 @@ watch(
     { immediate: false }
 );
 
-onMounted(() => {
-    // 保证页面一打开，轨迹就常亮展示
-    if (trajectoriesLoaded) return;
-    if (editor?.value && editor.value.viewer) {
-        loadTrajectories();
-        trajectoriesLoaded = true;
-    } else {
-        const stopWatch = watch(
-            () => editor?.value?.viewer,
-            (v) => {
-                if (v && !trajectoriesLoaded) {
-                    loadTrajectories();
-                    trajectoriesLoaded = true;
-                    stopWatch();
-                }
-            }
-        );
-    }
-});
+// onMounted(() => {
+//     // 保证页面一打开，轨迹就常亮展示
+//     if (trajectoriesLoaded) return;
+//     if (editor?.value && editor.value.viewer) {
+//         loadTrajectories();
+//         trajectoriesLoaded = true;
+//     } else {
+//         const stopWatch = watch(
+//             () => editor?.value?.viewer,
+//             (v) => {
+//                 if (v && !trajectoriesLoaded) {
+//                     loadTrajectories();
+//                     trajectoriesLoaded = true;
+//                     stopWatch();
+//                 }
+//             }
+//         );
+//     }
+// });
 
 function videoVehicle() {
     if (editor?.value && editor.value.viewer) {

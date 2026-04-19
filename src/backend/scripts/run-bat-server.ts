@@ -88,6 +88,9 @@ const HOCUSPOCUS_PORT = process.env.HOCUSPOCUS_PORT
 
 // 启动 HTTP 服务器（用于 /run-merge 接口）
 const httpServer = createServer(app);
+httpServer.on("error", (err) => {
+    console.error(`HTTP server 启动失败（${HTTP_PORT}）：`, err);
+});
 httpServer.listen(HTTP_PORT, () => {
     console.log(`✓ HTTP server listening on http://localhost:${HTTP_PORT}`);
     console.log(`  - /run-merge endpoint available`);
