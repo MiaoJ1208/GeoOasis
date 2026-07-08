@@ -42,11 +42,11 @@ app.post("/run-merge", async (_req: Request, res: Response) => {
         // 执行 .bat 文件（通过 cmd.exe 调用，确保 Windows 兼容性）
         execFile(
             "cmd.exe",
-            ["/k", batPath], // /c 参数表示执行命令后关闭 cmd
+            ["/c", "start", "", batPath], // start bat and return immediately
             {
                 encoding: "utf8" as const, // 指定编码为 utf8
                 windowsHide: false, // 显示 cmd 窗口
-                timeout: 5 * 60 * 1000, // 超时时间：5分钟（防止批处理无限运行）
+                timeout: 30 * 1000,
                 cwd: path.dirname(batPath) // 执行目录设为批处理文件所在目录（避免相对路径问题）
             },
             (err, stdout, stderr) => {
@@ -90,6 +90,7 @@ const HOCUSPOCUS_PORT = process.env.HOCUSPOCUS_PORT
 const httpServer = createServer(app);
 httpServer.on("error", (err) => {
     console.error(`HTTP server 启动失败（${HTTP_PORT}）：`, err);
+    process.exit(1);
 });
 httpServer.listen(HTTP_PORT, () => {
     console.log(`✓ HTTP server listening on http://localhost:${HTTP_PORT}`);

@@ -8,6 +8,7 @@ import FlyToPanel from "./components/FlyToPanel.vue";
 import InfoPanel from "./components/InfoPanel.vue";
 import RoadVisual from "./components/RoadVisual.vue";
 import { useGeoOasisStore } from "./store/GeoOasis.store";
+import { ElMessage } from "element-plus";
 import { onMounted, watch } from "vue";
 import { ref } from "vue";
 const roadVisualRef = ref();
@@ -34,6 +35,8 @@ async function runMerge() {
             }
         });
 
+        roadVisualRef.value?.connectVehicleSocket?.();
+
         if (!res.ok) {
             const errorData = await res
                 .json()
@@ -45,16 +48,14 @@ async function runMerge() {
         console.log("run-merge response:", data);
 
         if (data.success) {
-            alert(`融合解析执行成功！\n${data.message || ""}`);
+            ElMessage.success(data.message || "融合解析已启动");
         } else {
-            alert(
-                `融合解析执行失败：\n${data.message || data.error || "未知错误"}`
-            );
+            ElMessage.error(data.message || data.error || "融合解析执行失败");
         }
     } catch (err: any) {
         console.error("run-merge error:", err);
-        alert(
-            `触发失败：${err.message || "请确认后端服务已启动（运行 pnpm run-bat-server）"}`
+        ElMessage.error(
+            err.message || "触发失败，请确认后端服务已启动（运行 pnpm run-bat-server）"
         );
     }
 }

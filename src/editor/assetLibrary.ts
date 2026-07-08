@@ -14,27 +14,27 @@ export const defaultAsset: Asset[] = [
     {
         id: "asset-2",
         name: "airplane",
-        url: "Cesium_Air.glb"
+        url: "/Cesium_Air.glb"
     },
     {
         id: "asset-3",
         name: "road",
-        url: "road_hd/road_hd/scene.gltf"
+        url: "/road_hd/road_hd/scene.gltf"
     },
     {
         id: "asset-4",
         name: "suv",
-        url: "SUV_gltf/b03505c6f4f942e5ade70692a899e702.gltf"
+        url: "/SUV_gltf/b03505c6f4f942e5ade70692a899e702.gltf"
     },
     {
         id: "asset-5",
         name: "camera",
-        url: "camera/bc21bedf08ff475b9bd353ce1e4b4c34.gltf"
+        url: "/camera/bc21bedf08ff475b9bd353ce1e4b4c34.gltf"
     },
     {
         id: "asset-6",
         name: "pole",
-        url: "ligan/LiGan_A.gltf"
+        url: "/ligan/LiGan_A.gltf"
     },
     {
         id: "asset-7",
@@ -44,7 +44,7 @@ export const defaultAsset: Asset[] = [
     {
         id: "asset-8",
         name: "truck",
-        url: "truckModel.glb"
+        url: "/truckModel.glb"
     }
 ];
 
@@ -58,7 +58,7 @@ export class AssetLibrary {
 
     init() {
         for (const asset of defaultAsset) {
-            this.urlMap.set(asset.id, `./${asset.url as string}`);
+            this.urlMap.set(asset.id, asset.url as string);
         }
         const createURLhandler = this.createURLhandler.bind(this);
         this.assetArray.observe(createURLhandler);

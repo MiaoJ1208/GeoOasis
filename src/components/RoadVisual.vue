@@ -174,7 +174,7 @@ function loadRoadData() {
     if (editor?.value?.viewer) {
         viewer = editor.value.viewer;
         // GeoJSON文件URL
-        const geoJsonUrl = "./data/roadCity.json";
+        const geoJsonUrl = "/data/roadCity.json";
         loadGeoJSON(geoJsonUrl);
     } else {
         console.error("Editor or Viewer is not available");
@@ -1007,10 +1007,28 @@ function spawnRealtimeVehicle(
 // }
 
 let ws: WebSocket | null = null;
+let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+
+function getVehicleWsUrl() {
+    const configuredUrl = import.meta.env.VITE_VEHICLE_WS_URL;
+    if (configuredUrl) return configuredUrl;
+
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    return `${protocol}//127.0.0.1:8765`;
+}
 
 // 前端初始化 WebSocket 连接
-function initSocket() {
-    ws = new WebSocket("ws://127.0.0.1:8765"); //建立实例，指定服务器地址
+function initSocket(retriesLeft = 0) {
+    if (
+        ws &&
+        (ws.readyState === WebSocket.OPEN ||
+            ws.readyState === WebSocket.CONNECTING)
+    ) {
+        return;
+    }
+
+    const wsUrl = getVehicleWsUrl();
+    ws = new WebSocket(wsUrl); // 建立实例，指定服务器地址
 
     ws.onmessage = (ev) => {
         console.log("[WS] message received");
@@ -1028,7 +1046,7 @@ function initSocket() {
 
         if (msg.type === "line_cross") {
             const videoId = msg.video_id ?? "default";
-            const cls = msg.payload?.class ?? "car";
+            const cls = msg.payload?.class === "truck" ? "truck" : "car";
             console.log("[WS] spawn vehicle", msg.payload);
             spawnRealtimeVehicle(videoId, cls);
             return;
@@ -1047,8 +1065,30 @@ function initSocket() {
         }
     };
 
-    ws.onopen = () => console.log("WS connected");
-    ws.onerror = (e) => console.error("WS error", e);
+    ws.onopen = () => {
+        console.log(`[WS] connected: ${wsUrl}`);
+        if (reconnectTimer) {
+            clearTimeout(reconnectTimer);
+            reconnectTimer = null;
+        }
+    };
+    ws.onerror = (event) => {
+        console.error(`[WS] connection failed: ${wsUrl}`, event);
+    };
+    ws.onclose = () => {
+        const shouldRetry = retriesLeft > 0;
+        ws = null;
+        if (shouldRetry && !reconnectTimer) {
+            reconnectTimer = setTimeout(() => {
+                reconnectTimer = null;
+                initSocket(retriesLeft - 1);
+            }, 2000);
+        }
+    };
+}
+
+function connectVehicleSocket(retriesLeft = 15) {
+    initSocket(retriesLeft);
 }
 
 function flyToInitView() {
@@ -1115,7 +1155,7 @@ function videoVehicle() {
         console.log("[RoadVisual] viewer bound");
 
         flyToInitView();
-        initSocket();
+        connectVehicleSocket();
 
         viewer.entities.add({
             position: Cesium.Cartesian3.fromDegrees(
@@ -1129,10 +1169,15 @@ function videoVehicle() {
     }
 }
 
+onMounted(() => {
+    console.log("[RoadVisual] mounted");
+});
+
 defineExpose({
     loadRoadData,
     loadTrajectories,
     videoVehicle,
+    connectVehicleSocket,
     // 交通态势相关导出
     startTrafficAnimation,
     stopTrafficAnimation,

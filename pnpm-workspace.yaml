@@ -1,2 +1,7 @@
+allowBuilds:
+  '@swc/core': true
+  esbuild: true
+  protobufjs: true
+  vue-demi: true
 ignoredBuiltDependencies:
   - esbuild
