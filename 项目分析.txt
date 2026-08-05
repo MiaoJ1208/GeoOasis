@@ -1,567 +1,918 @@
-项目分析报告
+﻿项目说明与维护报告
 
 项目名称：公路交通数字孪生智能平台 / GeoOasis
-报告文件：项目分析.txt
-生成依据：当前项目源码、public 数据和模型资源、README 与 doc 文档，以及用户提供的论文文件“曾娣-论文定稿提交.pdf”。
-说明：当前环境缺少可可靠解析该 PDF 正文的专业工具，直接抽取结果主要为嵌入字体映射乱码，因此论文细节未做无法验证的逐字引用。本报告对论文主题的理解以项目本身呈现出的“公路交通数字孪生、交通态势预测、轨迹映射、视频事件映射、融合分析”功能为准，具体代码说明以源码为最终依据。
+主项目目录：D:\MiaoJ\Code\CJYGeoOasis\GeoOasis
+融合分析目录：D:\MiaoJ\Code\CJYGeoOasis\Fusion-Analysis
+报告用途：面向甲方使用、项目交付说明、后续更新维护。
+生成依据：当前项目源码、public 数据与模型资源、Fusion-Analysis 视频识别程序、项目 README/doc 文档，以及论文《基于 Cesium 的公路交通数字孪生关键技术研究》。
 
 一、项目总体定位
 
-本项目是一个基于 Vue 3、Vite、Cesium、Pinia、Yjs/Hocuspocus 的三维 WebGIS 公路交通数字孪生平台。系统的核心目标是把道路网络、车辆轨迹、交通态势、视频识别事件、三维模型和空间分析能力整合到一个三维场景中，便于甲方直观看到路网运行状态，也便于后续维护人员继续扩展交通分析、模型资产和数据接入能力。
+本项目是一个基于 Cesium、Vue 3、Vite、Pinia、Yjs、IndexedDB、Hocuspocus 和 WebSocket 的公路交通数字孪生原型系统。系统将三维地形地貌、公路基础设施模型、道路网络、车辆轨迹、视频识别事件、交通态势预测结果和空间分析工具集成在同一个三维 WebGIS 场景中，服务于公路运行监测、交通状态展示、数据映射和后续业务扩展。
 
-从甲方使用角度看，项目提供的是“打开三维地图 -> 加载道路/车辆/交通数据 -> 观察交通态势与车辆运行 -> 触发融合分析 -> 辅助定位和查看结果”的业务流程。
+从甲方使用角度看，系统提供的主要业务流程是：
+1. 打开三维数字孪生场景。
+2. 加载道路网络、地形影像、公路设施模型和业务数据。
+3. 查看车辆轨迹、视频识别车辆映射、交通态势预测播放结果。
+4. 通过右侧业务按钮触发融合解析程序。
+5. 通过图层面板、属性面板、坐标定位和空间分析工具完成辅助查看与维护。
 
-从维护角度看，项目主体分为前端可视化、Cesium 编辑器内核、数据/模型资源、协同同步、空间分析工具箱、轻量后端服务几个部分。
+从维护开发角度看，项目主要由以下几部分组成：
+1. GeoOasis 前端可视化主系统，位于 GeoOasis/src。
+2. GeoOasis 轻量后端，位于 GeoOasis/src/backend，用于 /run-merge 接口和协同编辑 WebSocket 服务。
+3. 静态数据和模型资源，位于 GeoOasis/public。
+4. Fusion-Analysis 视频识别与融合分析程序，位于 Fusion-Analysis，用于 YOLOv11 车辆检测、过线统计和 WebSocket 事件推送。
 
 二、项目已经实现的主要功能
 
 1. 三维地图与数字孪生场景
-   - 使用 Cesium 创建三维地球和地图容器。
-   - 支持 Bing、ArcGIS、本地 NaturalEarthII 底图切换。
-   - 支持 Cesium World Terrain 等地形选项。
-   - 支持地表透明、地下视角、地形深度测试等三维浏览配置。
-   - 提供 Home 回到初始视角、坐标输入定位功能。
+
+系统使用 Cesium Viewer 创建三维地球场景，支持影像底图、地形、三维模型、道路线、车辆实体、轨迹路径和业务图层叠加显示。
+
+主要能力包括：
+1. 创建三维 WebGIS 场景。
+2. 加载 Cesium World Terrain 等地形。
+3. 切换 Bing、ArcGIS、本地 NaturalEarthII 等底图。
+4. 开启地表半透明和地下观察，便于观察隧道、地下工程或被地表遮挡的对象。
+5. 支持 Home 回到初始视角、经纬度高度输入定位。
+6. 支持点、线、面、矩形、模型、图片等空间对象的绘制和显示。
+
+核心代码位置：
+1. GeoOasis/src/components/Editor.vue：Cesium 容器组件。
+2. GeoOasis/src/composables/useSetup.ts：Viewer 初始化、地表半透明、鼠标交互、CesiumGizmo 初始化。
+3. GeoOasis/src/editor/editor.ts：Editor 内核，连接 Cesium Viewer、Yjs 文档和场景实体。
+4. GeoOasis/src/editor/terrain.ts：地形选项和地形切换。
+5. GeoOasis/src/editor/imageryLayerManager.ts：底图和影像图层管理。
+6. GeoOasis/src/layer/utils.ts：根据图层 provider 创建 Cesium imagery/data provider。
 
 2. 道路网络加载与展示
-   - 用户点击“加载道路数据”后，将 public/data/roadCity.json 中的道路线数据渲染到 Cesium 场景。
-   - 每条 LineString 道路被转换为 Cesium polyline 实体，贴地显示。
 
-3. 交通态势预测/播放
-   - 用户点击“交通态势预测”后，系统读取 public/data/road_network_with_level.geojson。
-   - 每条道路按不同时间戳保存交通等级 traffic_level。
-   - 系统按时间顺序播放路网状态，用颜色表示畅通、基本畅通、轻度拥堵、中度拥堵、严重拥堵。
-   - 底部有时间线控制条，支持播放、暂停、拖动进度、查看当前时间戳和播放百分比。
+甲方点击“加载道路数据”后，系统读取 GeoOasis/public/data/roadCity.json，将其中的道路 LineString 数据转为 Cesium polyline 实体并贴地显示。
 
-4. 车辆轨迹映射
-   - 用户点击“轨迹数据映射”后，系统加载 public/data/20251030_163823_170604/Simulatedtrajectory1.json。
-   - 轨迹数据按 plateNo 车牌号分组，按时间排序。
-   - 使用 Cesium.SampledPositionProperty 保存车辆随时间变化的位置。
-   - 使用 VelocityOrientationProperty 自动计算车辆朝向。
-   - 通过 Cesium 时钟驱动车辆模型沿轨迹运动，并显示车辆路径和车牌标签。
+核心代码位置：
+1. GeoOasis/src/components/DataPanel.vue：业务按钮，点击后触发 load-road 事件。
+2. GeoOasis/src/App.vue：接收 load-road 事件，调用 roadVisualRef.value?.loadRoadData()。
+3. GeoOasis/src/components/RoadVisual.vue：loadRoadData、loadGeoJSON 负责读取 roadCity.json 并创建道路实体。
+4. GeoOasis/public/data/roadCity.json：道路基础线数据。
 
-5. 视频识别车辆映射
-   - 用户点击“视频数据映射”后，前端连接 WebSocket，默认地址为 ws://127.0.0.1:8765，也可用 VITE_VEHICLE_WS_URL 配置。
-   - 当前端收到 type 为 line_cross 的消息时，根据 video_id 找到预设道路车道，根据 payload.class 决定生成 car 或 truck。
-   - 生成的车辆实体会在指定起点和终点之间运动，用于把视频识别事件映射到三维路网。
+实现逻辑：
+1. DataPanel 发出 load-road。
+2. App.vue 的 onLoadRoad 调用 RoadVisual 暴露出来的 loadRoadData。
+3. loadRoadData 获取 editor.viewer。
+4. loadGeoJSON fetch 指定数据文件。
+5. 遍历 data.geometries 中的 LineString。
+6. 使用 Cesium.Cartesian3.fromDegrees 将经纬度转换为 Cesium 世界坐标。
+7. 使用 viewer.entities.add 添加 polyline，并保存到 roadEntities 数组中，便于后续清理或维护。
 
-6. 融合分析触发
-   - 用户点击“融合分析”后，前端请求 /run-merge。
-   - Vite 将 /run-merge 代理到本地后端 http://localhost:3000。
-   - 后端执行 BAT_FILE_PATH 指定的 bat 文件，默认指向 Fusion-Analysis/system-start.bat。
-   - 该能力用于把外部融合分析程序接到前端按钮上。
+3. 交通态势预测结果动态播放
+
+论文中交通流预测部分提出基于改进 T-GCN 的交通流预测方法，并将预测结果转为多级交通运行状态。当前仓库中没有发现 T-GCN 训练或推理源码；GeoOasis 当前实现的是“预测结果/交通等级结果的三维动态可视化播放”。也就是说，模型预测结果已经以 GeoJSON 数据形式放入 public/data，前端负责读取、按时间戳播放和按等级着色。
+
+核心代码位置：
+1. GeoOasis/src/components/DataPanel.vue：点击“交通态势预测”触发 toggle-traffic-analysis。
+2. GeoOasis/src/App.vue：toggleTrafficAnalysis 切换 store.isTrafficAnalysis。
+3. GeoOasis/src/store/GeoOasis.store.ts：保存 isTrafficAnalysis 状态。
+4. GeoOasis/src/components/RoadVisual.vue：loadTrafficData、updateTrafficDisplay、startTrafficAnimation、pauseTrafficAnimation、resumeTrafficAnimation、stopTrafficAnimation、handleTimelineChange。
+5. GeoOasis/public/data/road_network_with_level.geojson：当前实际读取的交通状态等级数据。
+6. GeoOasis/public/data/road_network_with_speeds.geojson：项目中存在的速度数据文件，但 RoadVisual.vue 当前默认使用 with_level 文件。
+
+实现逻辑：
+1. 用户点击“交通态势预测”按钮。
+2. App.vue 切换 store.isTrafficAnalysis。
+3. RoadVisual.vue watch isTrafficAnalysis。
+4. 开启时调用 loadTrafficData，读取 /data/road_network_with_level.geojson。
+5. 遍历 features，读取 feature.properties.Id、feature.geometry.coordinates、feature.properties.traffic_level。
+6. traffic_level 是“时间戳 -> 交通等级”的对象；系统合并所有路段的时间戳并排序，形成 trafficTimestamps。
+7. updateTrafficDisplay 根据当前时间戳读取每条路的等级，调用 getTrafficLevelColor 映射颜色。
+8. 每个时间步先移除上一帧 trafficEntities，再为当前时间戳创建新的 polyline 实体。
+9. startTrafficAnimation 使用 setInterval，默认每 1000ms 推进一个时间戳。
+10. 页面底部 traffic-timeline-control 显示播放按钮、进度条、当前时间戳和百分比。
+11. 用户拖动进度条时，handleTimelineChange 根据 0-100 的进度值换算时间戳索引，并暂停自动播放。
+
+交通等级颜色逻辑：
+1. 1：绿色，畅通。
+2. 2：青色，基本畅通。
+3. 3：黄色，轻度拥堵。
+4. 4：橙色，中度拥堵。
+5. 5：红色，严重拥堵。
+6. 未知等级：灰色。
+
+4. 车辆历史轨迹映射
+
+系统支持将车辆轨迹数据映射到 Cesium 场景中，以车辆模型、尾迹路径和车牌标签表达车辆运动过程。
+
+核心代码位置：
+1. GeoOasis/src/components/DataPanel.vue：点击“轨迹数据映射”触发 load-car-trajectories。
+2. GeoOasis/src/App.vue：handleLoadRoad 调用 RoadVisual.loadTrajectories。
+3. GeoOasis/src/components/RoadVisual.vue：loadTrajectories。
+4. GeoOasis/src/editor/assetLibrary.ts：模型资源库，提供车辆模型 URL。
+5. GeoOasis/public/data/20251030_163823_170604/Simulatedtrajectory1.json：当前默认轨迹数据。
+6. GeoOasis/public/SUV_gltf/*：默认 SUV 模型资源。
+
+实现逻辑：
+1. App.vue 调用 loadTrajectories("/data/20251030_163823_170604/Simulatedtrajectory1.json", 2)。
+2. RoadVisual.vue fetch 轨迹数据。
+3. 以 plateNo 作为车辆分组键。
+4. 每条轨迹点读取 longitude、latitude、altitude、timeStamp.$numberLong 或 time。
+5. 每辆车的轨迹点按时间排序。
+6. 计算所有车辆的 globalStart 和 globalStop，用于设置 Cesium clock。
+7. 从 assetLibrary 获取指定 index 的模型 URL。
+8. 为每辆车创建 Cesium.SampledPositionProperty，并对每个时间点 addSample。
+9. 使用 Cesium.VelocityOrientationProperty 根据运动方向计算朝向。
+10. 使用 CallbackProperty 将 VelocityOrientationProperty 与一个 Z 轴 -90 度修正四元数相乘，修正 glTF 模型默认朝向。
+11. viewer.entities.add 创建车辆实体，包含 position、orientation、model、path、label。
+12. 设置 viewer.clock.startTime、stopTime、currentTime、multiplier 和 shouldAnimate，驱动车辆按时间运动。
+
+5. 视频识别车辆实时映射
+
+论文中视频数据映射部分提出：使用 YOLOv11 完成车辆检测，使用改进质心追踪进行车流量统计，再通过 WebSocket 将检测事件实时推送到三维数字孪生空间。当前项目中该能力由 Fusion-Analysis 负责检测和推送，GeoOasis 负责接收事件并在 Cesium 中生成虚拟车辆。
+
+前端核心代码位置：
+1. GeoOasis/src/components/DataPanel.vue：点击“视频数据映射”触发 load-video-vehicle。
+2. GeoOasis/src/App.vue：videoVehicle 调用 RoadVisual.videoVehicle。
+3. GeoOasis/src/components/RoadVisual.vue：videoVehicle、getVehicleWsUrl、initSocket、connectVehicleSocket、ROAD_LANES、spawnRealtimeVehicle。
+4. GeoOasis/public/SUV_gltf/*：小车模型。
+5. GeoOasis/public/truckModel.glb：卡车模型。
+
+后端/识别核心代码位置：
+1. Fusion-Analysis/app.py：YOLOv11 推理、多视频任务、过线统计、WebSocket 消息发送。
+2. Fusion-Analysis/ws_server.py：WebSocket 广播服务，默认端口 8765。
+3. Fusion-Analysis/src/tracker.py：目标跟踪工具类，包含检测框匹配、轨迹维护、插值和平滑。
+4. Fusion-Analysis/MULTI_VIDEO_USAGE.md：多视频 WebSocket 消息格式说明。
+5. Fusion-Analysis/system-start.bat：启动 Fusion-Analysis/app.py。
+
+前端实现逻辑：
+1. 用户点击“视频数据映射”。
+2. App.vue 调用 RoadVisual.videoVehicle。
+3. videoVehicle 获取 viewer、飞到预设视角，并调用 connectVehicleSocket。
+4. getVehicleWsUrl 优先读取 VITE_VEHICLE_WS_URL；未配置时默认 ws://127.0.0.1:8765。
+5. initSocket 创建 WebSocket 连接。
+6. 收到消息后 JSON.parse。
+7. 当前重点处理 msg.type === "line_cross" 的消息。
+8. 使用 msg.video_id 找到 ROAD_LANES 中配置的虚拟车道起点和终点。
+9. 使用 msg.payload.class 判断车辆类型；truck 使用卡车模型，其它默认为 car。
+10. spawnRealtimeVehicle 创建一段从 now 到 stop 的 SampledPositionProperty，使车辆在 lifeSeconds 时间内从起点移动到终点。
+11. 使用 VelocityOrientationProperty 计算朝向，并通过四元数修正模型方向。
+12. 添加 Cesium model 实体，实现视频识别事件到三维道路空间的实时映射。
+
+WebSocket 协议格式：
+
+{
+  "type": "line_cross",
+  "video_id": "road_1",
+  "payload": {
+    "class": "car",
+    "direction": "up",
+    "count_up": 10,
+    "count_down": 3,
+    "class_line_counts": {
+      "car": 5,
+      "truck": 2
+    }
+  }
+}
+
+Fusion-Analysis 实现逻辑：
+1. app.py 中 VideoDetectionTask 表示一个独立视频检测线程。
+2. 每个任务持有 video_id、YOLO model、device、counting_line、confidence_threshold、iou_threshold、match_threshold 等配置。
+3. run 方法读取视频帧，将帧转为 RGB，调用 self.model(frame_rgb, device=..., conf=..., iou=..., max_det=...) 执行 YOLOv11 推理。
+4. 若配置了 counting_line，则调用 count_objects。
+5. count_objects 遍历检测框，计算车辆中心点。
+6. 对当前检测中心和历史轨迹做距离匹配，并使用简单速度预测 last + (last - prev) 辅助匹配。
+7. 当车辆中心点连线与计数线相交时，按 y 方向变化判断 up/down，更新 count_up、count_down 和 class_line_counts。
+8. 调用 push_line_event 组装 line_cross 消息并通过 ws_server.send 广播给前端。
+9. ws_server.py 维护 WebSocket 客户端集合，send 方法把消息投入 asyncio 事件循环并广播给所有客户端。
+
+6. 融合解析程序触发
+
+GeoOasis 通过一个 HTTP 接口触发 Fusion-Analysis 的本地程序启动，实现前端按钮与外部分析程序之间的集成。
+
+核心代码位置：
+1. GeoOasis/src/components/DataPanel.vue：点击“融合解析”触发 run-merge。
+2. GeoOasis/src/App.vue：runMerge 发送 POST /run-merge，并调用 RoadVisual.connectVehicleSocket。
+3. GeoOasis/vite.config.ts：将开发环境下的 /run-merge 代理到 http://localhost:3000。
+4. GeoOasis/src/backend/scripts/run-bat-server.ts：Express 后端，提供 POST /run-merge。
+5. Fusion-Analysis/system-start.bat：默认被启动的 bat 文件。
+6. Fusion-Analysis/app.py：bat 最终启动的视频识别应用。
+
+实现逻辑：
+1. 用户点击“融合解析”。
+2. App.vue 发送 POST /run-merge。
+3. Vite dev server 将 /run-merge 代理到本地 3000 端口。
+4. run-bat-server.ts 接收请求。
+5. 后端读取 BAT_FILE_PATH 环境变量；未配置时默认定位到 Fusion-Analysis/system-start.bat。
+6. 使用 fs.access 检查 bat 文件是否存在。
+7. 使用 execFile("cmd.exe", ["/c", "start", "", batPath]) 启动 bat 并立即返回。
+8. 成功或失败结果以 JSON 返回给前端，前端使用 Element Plus 消息提示。
+9. 同一个 run-bat-server.ts 还启动 Hocuspocus 协同服务，默认端口 3001。
 
 7. 图层管理
-   - 左侧图层栏显示影像图层、其他服务图层、元素列表。
-   - 支持切换底图、选择地形、选择/删除图层和元素。
-   - 选择元素后会自动飞到元素所在位置。
+
+系统提供左侧图层栏，用于查看和操作影像图层、服务图层、三维对象和基础底图。
+
+核心代码位置：
+1. GeoOasis/src/components/LayersBar.vue：图层栏 UI。
+2. GeoOasis/src/components/LayerBarItem.vue：图层列表项。
+3. GeoOasis/src/composables/useLayersBar.ts：图层选择、删除、底图切换、地形切换。
+4. GeoOasis/src/editor/editor.ts：addLayer、deleteLayer、setBaseLayer、handleYjsLayersEvents。
+5. GeoOasis/src/editor/imageryLayerManager.ts：影像图层管理。
+6. GeoOasis/src/layer/layer.ts：图层类型定义。
+7. GeoOasis/src/layer/utils.ts：图层 provider 到 Cesium 对象的转换。
+
+实现逻辑：
+1. 图层列表数据来自 Yjs 同步后的 elements、layers、imageryLayers。
+2. 点击列表项时 useLayersBar 查询 editor.getElement 或 editor.getLayer。
+3. 如果选中元素，系统根据元素坐标计算包围范围并飞到对象位置。
+4. 删除时调用 editor.deleteElement 或 editor.deleteLayer。
+5. service 图层通过 editor.handleYjsLayersEvents 转为 Cesium DataSource。
+6. imagery 图层通过 imageryLayerManager 转为 Cesium ImageryLayer。
+7. 3dtiles 图层通过 Cesium3DTileset 加入 scene.primitives。
 
 8. 空间对象绘制与编辑
-   - 工具栏支持默认选择、标记点、点、折线、多边形、模型等工具。
-   - 支持地表绘制模式和空间编辑模式。
-   - 空间编辑模式下可使用 CesiumGizmo 做平移、旋转、缩放。
-   - 支持 undo/redo。
 
-9. 文件上传和模型资产
-   - 支持上传 GeoJSON/JSON，作为服务图层加入场景。
-   - 支持上传 GLB 模型，加入模型资产库。
-   - 支持上传 PNG，作为图片矩形元素加入场景。
-   - 内置模型包括飞机、道路、SUV、摄像头、立杆、标志牌、卡车等。
+系统支持点、折线、多边形、矩形、模型和图片对象的绘制；支持地表拖拽和空间模式下的平移、旋转、缩放编辑。
+
+核心代码位置：
+1. GeoOasis/src/components/ToolsBar.vue：绘制工具栏、模型选择、上传、撤销/恢复。
+2. GeoOasis/src/composables/useSetup.ts：鼠标事件、绘制逻辑、CesiumGizmo 编辑。
+3. GeoOasis/src/editor/editor.ts：addElement、mutateElement、deleteElement、handleYjsElementsEvents。
+4. GeoOasis/src/element/newElement.ts：创建不同元素类型的默认数据结构。
+5. GeoOasis/src/element/element.ts：元素类型定义。
+6. GeoOasis/src/element/utils.ts：将元素数据转换为 Cesium Entity。
+7. GeoOasis/src/thirdParty/cesium-gizmo/*：三维编辑控件。
+
+实现逻辑：
+1. ToolsBar 修改 store.activeTool、drawMode、gizmoMode、selectedModelIdx。
+2. useSetup 注册 ScreenSpaceEventHandler，监听 LEFT_DOWN、LEFT_UP、RIGHT_CLICK。
+3. 选择 point/polyline/polygon/model/rectangle 等工具后，点击场景会调用 newElement.ts 创建元素对象。
+4. editor.addElement 将元素写入 Yjs Map。
+5. editor.ts 监听 Yjs elements.observeDeep。
+6. 新增元素时调用 element/utils.ts 中对应 generate*Entity 方法生成 Cesium Entity。
+7. 修改元素时通过 editor.mutateElement 写回 Yjs，并由 Cesium Entity 的 CallbackProperty 或更新分支反映到场景。
+8. 空间编辑模式下，CesiumGizmo 的 onDragMoving 返回平移、旋转或缩放结果，useSetup.handleGizmoDragMoving 将结果写入元素 positions、orientation 或 scale。
+9. useYjs.ts 封装 undo/redo，底层使用 editor.undoManager。
+
+9. 文件上传和模型资源库
+
+系统支持上传 JSON/GeoJSON、GLB 和 PNG，并将其转为可视化图层、模型资产或图片元素。
+
+核心代码位置：
+1. GeoOasis/src/components/ToolsBar.vue：上传入口。
+2. GeoOasis/src/components/internals/UploadButton.vue：文件选择组件。
+3. GeoOasis/src/composables/useUpLoadFile.ts：文件解析和分发。
+4. GeoOasis/src/editor/assetLibrary.ts：模型资产库。
+5. GeoOasis/src/element/newElement.ts：图片元素创建。
+
+实现逻辑：
+1. UploadButton 将用户选择的文件写入 selectedFile。
+2. useUpLoadFile 监听 selectedFile。
+3. JSON/GeoJSON 使用 FileReader.readAsText，JSON.parse 后调用 editor.addLayer，作为 service/geojson 图层加入。
+4. GLB 使用 FileReader.readAsArrayBuffer，转为 Uint8Array 后调用 editor.assetLibrary.addAsset。
+5. PNG 使用 readAsArrayBuffer，转为 Uint8Array 后调用 newImageElement 创建图片矩形元素，并加入 editor。
+6. assetLibrary 将上传模型转为 Blob URL，供 Cesium model.uri 使用。
 
 10. 属性面板和空间分析工具
-    - 选择元素后，可修改 name、description、点颜色、点大小等属性。
-    - 选择服务图层后，可打开工具箱执行 buffer、heatmap。
-    - buffer 使用 @turf/buffer 生成缓冲区图层。
-    - heatmap 支持 JS 计算和 rust-wasm-heatmap 计算，结果作为 singleTile 影像图层叠加。
 
-11. 协同编辑与本地优先
-    - 项目使用 Yjs 作为共享数据结构。
-    - IndexeddbPersistence 将文档保存到浏览器本地 indexedDB。
-    - HocuspocusProvider 可连接 ws://localhost:3001 实现多人协同。
-    - 元素、图层、影像图层、资产库等都围绕 Yjs 数据结构同步。
+系统右侧属性面板支持查看和修改选中元素属性，也支持对 service 图层执行 buffer 和 heatmap 工具。
 
-三、项目代码结构与文件职责
+核心代码位置：
+1. GeoOasis/src/components/InfoPanel.vue：属性面板和工具箱 UI。
+2. GeoOasis/src/composables/useInfoPanel.ts：表单生成、属性修改、工具执行。
+3. GeoOasis/src/tool/ToolBox.ts：工具注册和调度。
+4. GeoOasis/src/tool/interface.ts：BaseTool 接口。
+5. GeoOasis/src/tool/buffer.ts：缓冲区分析。
+6. GeoOasis/src/tool/heatmap.ts：热力图分析，支持 JS 和 WASM 两种计算路径。
 
-1. 根目录
-   - package.json：项目依赖和脚本。主要脚本包括 pnpm dev、pnpm build、pnpm preview、pnpm run-bat-server、pnpm dev:all。
-   - vite.config.ts：Vite 配置，负责 Vue、Cesium 静态资源复制、WASM、PWA 配置，以及 /run-merge 到 http://localhost:3000 的代理。
-   - index.html：前端入口 HTML。
-   - README.md：基础运行说明。
-   - public/：静态数据、模型、图标和 Cesium 可访问资源。
-   - src/：前端源码和轻量后端脚本。
-   - doc/：已有功能说明文档，主要是交通态势时间线相关文档。
+实现逻辑：
+1. useInfoPanel 监听 selectedElement，将元素 name、description、点颜色、点大小等属性转成表单项。
+2. 修改表单时调用 editor.mutateElement。
+3. 选中 service 图层后可以打开工具箱。
+4. buffer 工具读取 editor.getLayerData，调用 ToolBox.runTool("buffer")。
+5. buffer.ts 使用 @turf/buffer 生成缓冲区 GeoJSON，再通过 editor.addLayer 加入新 service 图层。
+6. heatmap 工具从点 GeoJSON 中读取坐标和 heat 值，计算 extent。
+7. heatmap.ts 根据 options.mode 选择 JS 或 rust-wasm-heatmap 生成 ImageData。
+8. useInfoPanel 将 ImageData 写入 canvas，转成 PNG dataURL，再作为 singleTile imagery 图层加入。
+
+11. 协同编辑、本地优先和编辑记录
+
+论文中提到结合 Yjs 和 IndexedDB 实现轻量级三维场景编辑状态持久化。当前项目已经实现了本地优先的编辑记录、撤销/恢复和可选多人协同。
+
+核心代码位置：
+1. GeoOasis/src/editor/editor.ts：Y.Doc、Y.Map、Y.Array、IndexeddbPersistence、UndoManager、HocuspocusProvider。
+2. GeoOasis/src/editor/provider.ts：createHocuspocusProvider。
+3. GeoOasis/src/composables/useYjs.ts：undo/redo。
+4. GeoOasis/src/composables/useSync.ts：Yjs 数据转 Vue 响应式数据。
+5. GeoOasis/src/composables/useAwareness.ts：协同用户状态。
+6. GeoOasis/src/backend/scripts/run-bat-server.ts：启动 Hocuspocus server。
+7. GeoOasis/src/contants.ts：Hocuspocus_URL，当前为 ws://localhost:3001。
+
+实现逻辑：
+1. Editor 构造函数创建 this.doc = new Y.Doc()。
+2. 从 doc 中创建 title、options、ElementsMap、LayersMap、assetArray、YImageryLayers 等共享结构。
+3. new IndexeddbPersistence("oasis-doc", this.doc) 将 Yjs 文档持久化到浏览器 IndexedDB。
+4. UndoManager 绑定 elements、layers、baseLayers、assetLibrary.assetArray、imageryLayerManager.imageryLayers 等结构，实现统一撤销/恢复。
+5. elements.observeDeep 和 layers.observeDeep 监听共享数据变化。
+6. 当 Yjs 中元素新增、修改、删除时，editor.ts 同步增删改 Cesium Entity。
+7. 当 Yjs 中图层新增、删除时，editor.ts 同步增删 Cesium DataSource、ImageryLayer 或 3DTiles primitive。
+8. changeRoom(roomId) 会先断开旧 provider，再通过 createHocuspocusProvider(Hocuspocus_URL, roomId, doc) 接入指定协同房间。
+9. HocuspocusProvider 负责把本地 Y.Doc 与 ws://localhost:3001 的 Hocuspocus 服务同步。
+10. useSync 将 Yjs Map/Array 转为 Vue ref/computed 数据，供 LayersBar、InfoPanel 等组件渲染。
+
+三、项目代码结构说明
+
+1. 根目录文件
+
+GeoOasis/package.json
+项目依赖和脚本。常用脚本包括 pnpm dev、pnpm build、pnpm preview、pnpm run-bat-server、pnpm dev:all。
+
+GeoOasis/vite.config.ts
+Vite 配置。负责 Vue 插件、Cesium 静态资源复制、WASM、PWA 和开发代理。/run-merge 会被代理到 http://localhost:3000。
+
+GeoOasis/index.html
+前端入口 HTML。
+
+GeoOasis/README.md
+基础运行说明。
+
+GeoOasis/doc
+已有设计和交通态势时间线相关文档。
+
+GeoOasis/public
+静态资源目录，包括道路数据、交通态势数据、轨迹数据、车辆模型、摄像头模型、标志牌模型、道路模型、图标等。
 
 2. src 入口和全局状态
-   - src/main.ts：创建 Vue 应用，挂载 Pinia 和 ElementPlus。
-   - src/App.vue：页面总装配，放置 Editor、AppHeader、LayersBar、DataPanel、InfoPanel、RoadVisual、FlyToPanel、FooterBar，并把按钮事件转发给 RoadVisual。
-   - src/store/GeoOasis.store.ts：Pinia 全局 store，保存 editor、toolBox、选中元素、选中图层、底图、地形、协同用户、当前工具、绘制模式、模型选择、坐标、交通态势开关等。
-   - src/contants.ts：Cesium Ion token 和 Hocuspocus 地址配置。注意文件名是 contants.ts，不是 constants.ts。
+
+GeoOasis/src/main.ts
+创建 Vue 应用，挂载 Pinia 和 Element Plus。
+
+GeoOasis/src/App.vue
+页面总装配。组合 Editor、LayersBar、DataPanel、InfoPanel、RoadVisual、FlyToPanel、FooterBar，并把 DataPanel 的业务事件转发给 RoadVisual 或后端接口。
+
+GeoOasis/src/store/GeoOasis.store.ts
+Pinia 全局状态。保存 editor、toolBox、选中元素、选中图层、底图、地形、协同用户、当前工具、绘制模式、模型选择、坐标、交通态势开关等。
+
+GeoOasis/src/contants.ts
+Cesium Ion token 和 Hocuspocus_URL 配置。注意文件名是 contants.ts，不是 constants.ts。
 
 3. src/components 组件层
-   - Editor.vue：Cesium 容器组件，调用 useSetup 初始化 Viewer。
-   - AppHeader.vue：头部组件。
-   - BoardBar.vue / BoardBar.css：顶部菜单栏。
-   - ToolsBar.vue / ToolsBar.css：绘制工具栏、模型选择栏、上传、链接、撤销/恢复。
-   - LayersBar.vue：左侧图层/元素列表、底图选择、地形选择。
-   - LayerBarItem.vue：图层列表项。
-   - DataPanel.vue：右侧业务功能按钮，包括加载道路、轨迹映射、融合分析、视频数据映射、交通态势预测。
-   - InfoPanel.vue：选中对象属性面板和工具箱入口。
-   - RoadVisual.vue：交通业务可视化核心，包含道路加载、交通态势、车辆轨迹、视频车辆、WebSocket 连接等逻辑。
-   - FlyToPanel.vue：输入经纬度和高度后飞到指定坐标。
-   - FooterBar.vue：Home 视角按钮。
-   - Dialog.vue / ShareDialog.vue：链接和分享相关弹窗。
-   - components/internals/：Button、Select、Switch、UploadButton、Separator 等基础 UI 组件。
+
+Editor.vue
+Cesium 容器组件，调用 useSetup 初始化 Viewer。
+
+AppHeader.vue
+顶部应用头部。
+
+BoardBar.vue / BoardBar.css
+顶部菜单栏。
+
+ToolsBar.vue / ToolsBar.css
+绘制工具栏、模型选择栏、上传、分享、撤销/恢复。
+
+LayersBar.vue
+左侧图层、元素、底图和地形选择面板。
+
+LayerBarItem.vue
+图层列表项。
+
+DataPanel.vue
+右侧业务按钮面板，包括加载道路数据、轨迹数据映射、融合解析、视频数据映射、交通态势预测。
+
+InfoPanel.vue
+选中对象属性面板和空间分析工具箱入口。
+
+RoadVisual.vue
+交通业务可视化核心组件。包含道路加载、交通态势播放、车辆轨迹、视频车辆实时映射、WebSocket 连接、时间线 UI。
+
+FlyToPanel.vue
+经纬度和高度输入定位。
+
+FooterBar.vue
+Home 视角按钮。
+
+Dialog.vue / ShareDialog.vue
+链接和分享相关弹窗。
+
+components/internals
+Button、Select、Switch、UploadButton、Separator 等基础 UI 组件。
 
 4. src/composables 组合式逻辑
-   - useSetup.ts：初始化 Cesium Viewer、底图、地形、工具箱、鼠标事件、绘制逻辑、Gizmo 编辑逻辑。
-   - useLayersBar.ts：图层栏状态、选择、删除、底图切换、地形切换。
-   - useInfoPanel.ts：属性面板表单生成、元素属性修改、buffer/heatmap 工具执行。
-   - useCoordinateNavigation.ts：坐标输入校验和相机 flyTo。
-   - useUpLoadFile.ts：上传 JSON/GeoJSON/GLB/PNG 后转成图层、资产或图片元素。
-   - useYjs.ts：封装 undo/redo。
-   - useAwareness.ts：协同用户状态。
-   - useSync.ts：把 Yjs Map/Array/Text 转成 Vue 响应式数据。
-   - useSceneHelper.ts：场景辅助方法，如 flyToHome。
+
+useSetup.ts
+初始化 Cesium Viewer、底图、地形、鼠标事件、绘制逻辑、CesiumGizmo、地表半透明、BufferTool、HeatMapTool。
+
+useLayersBar.ts
+图层栏状态、选择、删除、底图切换、地形切换。
+
+useInfoPanel.ts
+属性面板表单生成、元素属性修改、buffer/heatmap 工具执行。
+
+useCoordinateNavigation.ts
+坐标输入校验和相机 flyTo。
+
+useUpLoadFile.ts
+上传 JSON/GeoJSON/GLB/PNG 后转为图层、模型资产或图片元素。
+
+useYjs.ts
+封装 undo/redo。
+
+useAwareness.ts
+协同用户状态。
+
+useSync.ts
+将 Yjs 共享结构同步为 Vue 响应式数据。
+
+useSceneHelper.ts
+场景辅助方法，如 flyToHome。
 
 5. src/editor 编辑器内核
-   - editor.ts：核心 Editor 类。管理 Yjs 文档、元素、图层、底图、资产库、Cesium Viewer、undoManager、Hocuspocus provider，并把 Yjs 事件同步到 Cesium 实体/图层。
-   - imageryLayerManager.ts：影像图层管理，包含默认底图 Local、Bing、ArcGIS，负责 Yjs 影像图层和 Cesium ImageryLayerCollection 的同步。
-   - assetLibrary.ts：模型资产库，管理默认模型和用户上传模型。
-   - provider.ts：创建 HocuspocusProvider。
-   - terrain.ts：地形选项和地形切换。
-   - tunnelClipping.ts：隧道/裁剪相关扩展。
-   - type.ts / utils.ts：编辑器类型和工具函数。
+
+editor.ts
+核心 Editor 类。管理 Yjs 文档、元素、图层、底图、资产库、Cesium Viewer、UndoManager、Hocuspocus provider，并把 Yjs 数据变更同步到 Cesium 实体和图层。
+
+imageryLayerManager.ts
+影像图层管理。包含默认底图 Local、Bing、ArcGIS，负责 Yjs 影像图层和 Cesium ImageryLayerCollection 的同步。
+
+assetLibrary.ts
+模型资产库。管理默认模型和用户上传模型。
+
+provider.ts
+创建 HocuspocusProvider。
+
+terrain.ts
+地形选项和 Viewer 地形切换。
+
+tunnelClipping.ts
+隧道/地下空间裁剪辅助函数 createTunnelClippingPlanes，可基于中心点创建 ClippingPlaneCollection。
+
+type.ts / utils.ts
+编辑器类型和工具函数。
 
 6. src/element 空间元素
-   - element.ts：元素类型定义。
-   - newElement.ts：创建点、线、面、模型、矩形、图片元素的默认数据结构。
-   - utils.ts：把元素数据生成 Cesium Entity，包括 point、polyline、polygon、model、rectangle/image。
-   - types.ts：基础坐标类型。
+
+element.ts
+点、线、面、模型、矩形、图片等元素类型定义。
+
+newElement.ts
+创建点、折线、多边形、模型、矩形、图片元素的默认数据结构。
+
+utils.ts
+把元素数据生成 Cesium Entity，包括 point、polyline、polygon、model、rectangle/image。
+
+types.ts
+基础坐标类型。
 
 7. src/layer 图层
-   - layer.ts：图层类型定义，如 imagery、service、3dtiles 等。
-   - utils.ts：根据图层配置创建 ArcGIS、Bing、WMS、WMTS、TMS、singleTile 等 Cesium 影像 Provider。
+
+layer.ts
+图层类型定义，如 imagery、service、3dtiles。
+
+utils.ts
+根据图层配置创建 ArcGIS、Bing、WMS、WMTS、TMS、singleTile 等 Cesium provider。
 
 8. src/tool 空间分析工具箱
-   - interface.ts：BaseTool 和 ToolBoxBase 接口。
-   - ToolBox.ts：注册、查找、运行工具。
-   - buffer.ts：缓冲区分析工具。
-   - heatmap.ts：热力图工具，支持 JS 和 WASM 两套计算路径。
+
+interface.ts
+BaseTool 和 ToolBoxBase 接口。
+
+ToolBox.ts
+工具注册、查找和运行。
+
+buffer.ts
+缓冲区分析工具。
+
+heatmap.ts
+热力图工具，支持 JS 和 WASM 计算。
 
 9. src/backend 轻量后端
-   - src/backend/scripts/run-bat-server.ts：Express 后端，提供 POST /run-merge，并启动 Hocuspocus WebSocket 协同服务。
-   - src/backend/scripts/ws/server.ts：WebSocket 服务脚本。
-   - src/backend/README.md：后端服务说明。
 
-10. public 数据和模型资源
-    - public/data/roadCity.json：道路展示数据。
-    - public/data/road_network_with_level.geojson：交通态势等级数据。
-    - public/data/road_network_with_speeds.geojson：交通速度数据，当前文档提到过，但 RoadVisual.vue 实际使用的是 with_level 文件。
-    - public/data/20251030_163823_170604/*.json：轨迹数据。
-    - public/SUV_gltf/、public/truckModel.glb、public/camera/、public/signs/、public/ligan/、public/road_hd/：车辆、摄像头、标志牌、立杆、道路等三维模型。
+src/backend/scripts/run-bat-server.ts
+Express 后端。提供 POST /run-merge，启动 Fusion-Analysis/system-start.bat；同时启动 Hocuspocus WebSocket 协同服务。
 
-四、各功能的实现逻辑
+src/backend/scripts/ws/server.ts
+WebSocket 服务脚本。
 
-1. 三维场景初始化
-   相关文件：
-   - src/components/Editor.vue
-   - src/composables/useSetup.ts
-   - src/editor/editor.ts
-   - vite.config.ts
+src/backend/README.md
+后端服务说明。
 
-   实现逻辑：
-   - Editor.vue 渲染 div#cesium-viewer，并调用 useSetup。
-   - useSetup.ts 的 setupViewer 创建 Cesium.Viewer，关闭默认动画、时间线、地名搜索、底图选择等控件，只保留项目自定义 UI。
-   - 设置 Cesium Ion token，配置地表透明、关闭相机碰撞检测、开启 depthTestAgainstTerrain。
-   - 创建完成后调用 store.editor.attachViewer(viewer)，让 Editor 内核持有 Cesium Viewer。
-   - useSetup 同时注册 BufferTool 和 HeatMapTool，后续 InfoPanel 可调用。
-   - vite.config.ts 将 Cesium 的 ThirdParty、Workers、Assets、Widgets 复制到 cesiumStatic，保证 Cesium 运行时资源能被访问。
+10. Fusion-Analysis 目录
 
-2. 底图和地形切换
-   相关文件：
-   - src/components/LayersBar.vue
-   - src/composables/useLayersBar.ts
-   - src/editor/imageryLayerManager.ts
-   - src/layer/utils.ts
-   - src/editor/terrain.ts
+Fusion-Analysis/app.py
+当前视频识别主程序。使用 ultralytics YOLO，支持单/多视频检测、过线计数和 WebSocket 推送。
 
-   实现逻辑：
-   - LayersBar.vue 展示 baseMapOptions：Bing、ArcGIS、Local。
-   - useLayersBar.ts 监听 selectedBaseLayer，变化时调用 editor.setBaseLayer。
-   - editor.setBaseLayer 转给 imageryLayerManager.setBaseLayer。
-   - imageryLayerManager 预置 defaultBaseLayers，按 provider 创建对应 Cesium ImageryLayer。
-   - 地形切换通过 selectTerrain -> editor.setTerrain -> options Y.Map 变更 -> Editor 监听 options，调用 setTerrain 更新 Viewer。
+Fusion-Analysis/ws_server.py
+统计事件 WebSocket 广播服务，默认前端连接地址为 ws://127.0.0.1:8765。
 
-3. 元素绘制、选择和编辑
-   相关文件：
-   - src/components/ToolsBar.vue
-   - src/composables/useSetup.ts
-   - src/editor/editor.ts
-   - src/element/newElement.ts
-   - src/element/utils.ts
-   - src/thirdParty/cesium-gizmo/*
+Fusion-Analysis/src/tracker.py
+目标追踪工具类，维护检测框、中心点、轨迹、插值和平滑。
 
-   实现逻辑：
-   - ToolsBar.vue 修改 activeTool、drawMode、gizmoMode、selectedModelIdx。
-   - useSetup.ts 注册 Cesium ScreenSpaceEventHandler，监听 LEFT_DOWN、LEFT_UP、RIGHT_CLICK。
-   - 当 activeTool 是 point/polyline/polygon/model/rectangle 时，根据点击位置调用 newElement.ts 创建元素，再调用 editor.addElement。
-   - editor.addElement 把普通对象写入 Yjs Map。
-   - Editor 监听 Yjs elements 的变化，发现新增元素后调用 element/utils.ts 中的 generatePointEntity、generatePolylineEntity、generatePolygonEntity、generateModelEntity、generateRectangleEntity，生成 Cesium Entity 并加入 viewer.entities。
-   - 元素修改通过 editor.mutateElement 写回 Yjs。startEdit 为部分属性使用 CallbackProperty，使 Cesium Entity 可实时读取 Yjs 里的位置、朝向、缩放。
-   - 空间模式下使用 CesiumGizmo，根据 gizmoMode 把拖拽结果写回元素 positions、orientation 或 scale。
+Fusion-Analysis/system-start.bat
+使用内置 py311/python.exe 启动 app.py。
 
-4. 图层管理
-   相关文件：
-   - src/components/LayersBar.vue
-   - src/components/LayerBarItem.vue
-   - src/composables/useLayersBar.ts
-   - src/editor/editor.ts
-   - src/editor/imageryLayerManager.ts
-   - src/layer/layer.ts
-   - src/layer/utils.ts
+Fusion-Analysis/models
+YOLO 模型文件目录，如 bestH.pt、car.pt、yolo11*.pt 等。
 
-   实现逻辑：
-   - 图层列表来自 store 中的 elementArray、layersArray、imageryLayersArray，这些数组由 Yjs 数据同步而来。
-   - 用户选择列表项时，useLayersBar.handleSelect 会用 editor.getElement/editor.getLayer 查找对象，并更新 selectedElement/selectedLayer。
-   - 如果选中的是空间元素，会根据元素 positions 创建 BoundingSphere，并 camera.flyToBoundingSphere 飞到元素位置。
-   - 删除时同时调用 editor.deleteElement 和 editor.deleteLayer，避免不确定 id 属于哪一类。
-   - 对 service 图层，Editor.handleYjsLayersEvents 会根据 provider 加载 GeoJSON 等 DataSource。
-   - 对 imagery 图层，ImageryLayerManager 会创建并同步 Cesium ImageryLayer。
-   - 对 3dtiles 图层，Editor 会创建 Cesium3DTileset 并加入 scene.primitives。
+Fusion-Analysis/data
+测试视频和数据。
 
-5. 文件上传
-   相关文件：
-   - src/components/ToolsBar.vue
-   - src/components/internals/UploadButton.vue
-   - src/composables/useUpLoadFile.ts
-   - src/utils.ts
-   - src/editor/assetLibrary.ts
-   - src/element/newElement.ts
+四、论文核心技术在项目中的实现位置
 
-   实现逻辑：
-   - ToolsBar 中的 UploadButton 将文件绑定到 selectedFile。
-   - useUpLoadFile 监听 selectedFile，按扩展名判断类型。
-   - JSON/GeoJSON：解析为对象，editor.addLayer 新增 service/geojson 图层。
-   - GLB：读取 ArrayBuffer，转 Uint8Array，assetLibrary.addAsset 加入资产库。
-   - PNG：读取 ArrayBuffer，调用 newImageElement 创建图片元素并加入编辑器。
-   - assetLibrary 会把上传的 Uint8Array 转为 Blob URL，供 Cesium model.uri 使用。
+1. Cesium 三维场景构建
 
-6. 道路网络加载
-   相关文件：
-   - src/components/DataPanel.vue
-   - src/App.vue
-   - src/components/RoadVisual.vue
-   - public/data/roadCity.json
+论文对应内容：
+基于 Cesium 引擎实现地形地貌、公路基础设施、地下空间等关键要素的三维表达。
 
-   实现逻辑：
-   - DataPanel 点击“加载道路数据”后 emit load-road。
-   - App.vue 的 onLoadRoad 调用 roadVisualRef.value?.loadRoadData()。
-   - RoadVisual.vue 的 loadRoadData 取得 editor.value.viewer，并调用 loadGeoJSON("/data/roadCity.json")。
-   - loadGeoJSON 读取 data.geometries，遇到 LineString 就把 coordinates 转为 Cesium.Cartesian3.fromDegrees，创建 polyline 实体。
-   - 新实体保存到 roadEntities，便于后续管理，并 flyTo 第一条道路。
+项目实现：
+1. Viewer 创建和配置在 GeoOasis/src/composables/useSetup.ts。
+2. 地形加载和切换在 GeoOasis/src/editor/terrain.ts。
+3. 底图加载和切换在 GeoOasis/src/editor/imageryLayerManager.ts、GeoOasis/src/layer/utils.ts。
+4. 三维模型加载和资产管理在 GeoOasis/src/editor/assetLibrary.ts、GeoOasis/src/element/utils.ts。
+5. 道路、轨迹、车辆等交通对象可视化集中在 GeoOasis/src/components/RoadVisual.vue。
 
-7. 交通态势预测和时间线
-   相关文件：
-   - src/components/DataPanel.vue
-   - src/App.vue
-   - src/store/GeoOasis.store.ts
-   - src/components/RoadVisual.vue
-   - public/data/road_network_with_level.geojson
+实现逻辑：
+1. useSetup.setupViewer 创建 Cesium.Viewer。
+2. 关闭 Cesium 默认 UI 控件，保留项目自定义 UI。
+3. 设置 Ion token、scene3DOnly、baseLayer false 等配置。
+4. Viewer 创建后执行 store.editor.attachViewer，把 Viewer 交给 Editor 内核统一管理。
+5. Editor 负责后续 Yjs 数据到 Cesium Entity/DataSource/ImageryLayer 的同步。
 
-   实现逻辑：
-   - DataPanel 点击“交通态势预测”后 emit toggle-traffic-analysis。
-   - App.vue 切换 store.isTrafficAnalysis。
-   - RoadVisual.vue watch(isTrafficAnalysis)。打开时先 loadTrafficData，再 startTrafficAnimation；关闭时 stopTrafficAnimation。
-   - loadTrafficData 读取 GeoJSON，遍历 features，把每条 LineString 的 Id、coordinates、traffic_level 存入 trafficDataMap。
-   - 同时收集 traffic_level 中所有时间戳，排序成 trafficTimestamps。
-   - updateTrafficDisplay(timestampIndex) 根据当前时间戳清空旧 trafficEntities，再遍历 trafficDataMap，为每条道路创建新的 polyline。
-   - getTrafficLevelColor(level) 将等级映射成颜色：1 绿色、2 青色、3 黄色、4 橙色、5 红色，默认灰色。
-   - startTrafficAnimation 使用 setInterval 每 1000ms 推进 trafficTimelineIndex。
-   - pauseTrafficAnimation 只停止定时器，不清空实体。
-   - stopTrafficAnimation 停止定时器并清空交通实体。
-   - handleTimelineChange 根据 0-100 的进度条百分比计算时间戳索引，暂停播放并更新画面。
-   - 模板中 v-if="isTrafficAnalysis" 显示底部时间线控件。
+2. 隧道/地下空间半透明效果
 
-8. 车辆轨迹映射
-   相关文件：
-   - src/components/DataPanel.vue
-   - src/App.vue
-   - src/components/RoadVisual.vue
-   - src/editor/assetLibrary.ts
-   - public/data/20251030_163823_170604/Simulatedtrajectory1.json
-   - public/SUV_gltf/*
+论文对应内容：
+提出基于相机与参考点距离的地表透明度动态调节方法，用于解决地下工程难以观测的问题。
 
-   实现逻辑：
-   - DataPanel 点击“轨迹数据映射”后 emit load-car-trajectories。
-   - App.vue 的 handleLoadRoad 调用 RoadVisual.loadTrajectories，并传入 Simulatedtrajectory1.json 和模型索引 2。
-   - loadTrajectories 读取轨迹数组，按 plateNo 分组。
-   - 每个点解析 longitude、latitude、altitude、timeStamp 或 time，得到 lon/lat/alt/timeMs。
-   - 每组按 timeMs 排序，计算全局 start/stop 时间。
-   - 根据 assetIndex 从 assetLibrary 找到模型 URL。
-   - 对每辆车创建 SampledPositionProperty，逐个 addSample。
-   - 使用 VelocityOrientationProperty 计算方向，再通过 CallbackProperty 乘以一个 Z 轴 -90 度修正四元数，让模型朝向更贴合行驶方向。
-   - 设置 viewer.clock 的 startTime、stopTime、currentTime、multiplier、shouldAnimate，驱动车辆实体运动。
-   - 每辆车有 model、path、label，分别负责模型、尾迹路径、车牌显示。
+项目实现位置：
+1. GeoOasis/src/composables/useSetup.ts：当前实际启用地表半透明和动态透明度调节。
+2. GeoOasis/src/editor/tunnelClipping.ts：提供隧道裁剪平面集合辅助函数，但当前主流程中未看到被调用。
 
-9. 视频数据映射
-   相关文件：
-   - src/components/DataPanel.vue
-   - src/App.vue
-   - src/components/RoadVisual.vue
-   - public/SUV_gltf/*
-   - public/truckModel.glb
+useSetup.ts 中的实现逻辑：
+1. cesiumViewer.scene.globe.translucency.enabled = true，开启地表半透明能力。
+2. cesiumViewer.scene.screenSpaceCameraController.enableCollisionDetection = false，允许相机进入地下。
+3. cesiumViewer.scene.globe.depthTestAgainstTerrain = true，开启地形深度测试。
+4. 使用 Cartesian3.fromDegrees 设置参考点 referencePoint。
+5. 在 updateGlobeTranslucency 中读取 camera.position。
+6. 使用 Cartesian3.distance 计算相机到参考点距离。
+7. 当距离小于 thresholdDistance 1000 米时，frontFaceAlpha 设置为 0.5。
+8. 当距离大于阈值时，frontFaceAlpha 恢复为 1。
+9. 通过 cesiumViewer.scene.camera.changed.addEventListener(updateGlobeTranslucency) 监听相机变化，实时更新透明度。
 
-   实现逻辑：
-   - DataPanel 点击“视频数据映射”后 emit load-video-vehicle。
-   - App.vue 的 videoVehicle 调用 RoadVisual.videoVehicle。
-   - videoVehicle 绑定 viewer、飞到预设视角、调用 connectVehicleSocket，并放置一个 VIEWER READY 测试点。
-   - connectVehicleSocket 调用 initSocket。
-   - getVehicleWsUrl 优先读取 VITE_VEHICLE_WS_URL，否则默认 ws://127.0.0.1:8765。
-   - initSocket 监听消息，解析 JSON。
-   - 当 msg.type 为 line_cross 时，取 video_id 和 payload.class，调用 spawnRealtimeVehicle。
-   - ROAD_LANES 保存 video_id 到虚拟车道起终点和模型配置的映射。
-   - spawnRealtimeVehicle 创建 now 到 stop 的 SampledPositionProperty，使车辆在 lifeSeconds 内从起点移动到终点。
-   - car 使用 SUV 模型并做 -90 度朝向修正，truck 使用 truckModel.glb。
+tunnelClipping.ts 中的实现逻辑：
+1. createTunnelClippingPlanes(center, options) 接收中心点、宽度、高度、enabled。
+2. 创建 6 个 ClippingPlane，分别对应东西南北上下方向。
+3. unionClippingRegions: true 表示多个裁剪区域取并集。
+4. modelMatrix 使用 Transforms.eastNorthUpToFixedFrame(center)，使裁剪盒以中心点局部 ENU 坐标系定位。
+5. 返回 ClippingPlaneCollection，可供后续挂到 globe、tileset 或 model 上使用。
 
-10. 融合分析
-    相关文件：
-    - src/components/DataPanel.vue
-    - src/App.vue
-    - vite.config.ts
-    - src/backend/scripts/run-bat-server.ts
-    - src/backend/README.md
+维护建议：
+如果甲方需要更精确的隧道开挖窗口或局部裁剪，应在 Viewer 初始化或具体地下模型加载后调用 createTunnelClippingPlanes，并明确挂载对象；当前可见效果主要来自地表透明度，而不是裁剪平面。
 
-    实现逻辑：
-    - DataPanel 点击“融合分析”后 emit run-merge。
-    - App.vue 的 runMerge 先调用 roadVisualRef.value?.connectVehicleSocket?.()，再 POST /run-merge。
-    - Vite 开发服务器将 /run-merge 代理到 http://localhost:3000。
-    - run-bat-server.ts 中 Express 接收 POST /run-merge。
-    - 后端读取 BAT_FILE_PATH 环境变量，未配置时使用默认 Fusion-Analysis/system-start.bat。
-    - 用 fs.access 检查 bat 是否存在，然后 execFile("cmd.exe", ["/k", batPath]) 执行。
-    - 成功或失败都会以 JSON 返回给前端，前端弹窗提示。
-    - 同一个后端脚本还启动 Hocuspocus 服务，默认端口 3001。
+3. 交通设施编辑控件与屏幕自适应尺度保持
 
-11. 属性面板与空间分析工具箱
-    相关文件：
-    - src/components/InfoPanel.vue
-    - src/composables/useInfoPanel.ts
-    - src/tool/ToolBox.ts
-    - src/tool/buffer.ts
-    - src/tool/heatmap.ts
+论文对应内容：
+引入面向交通设施编辑的操作控件与屏幕自适应尺度保持方法，提高场景构建过程中的操作精度。
 
-    实现逻辑：
-    - useInfoPanel 监听 selectedElement，把元素属性展开为 form 数组。
-    - 用户在 InfoPanel 修改属性时，handleElementChange 调用 editor.mutateElement。
-    - 选择 service 图层后可以打开工具箱。
-    - buffer：取 editor.getLayerData，调用 ToolBox.runTool("buffer")，结果作为新的 geojson service 图层加入。
-    - heatmap：从 GeoJSON 点数据中读取坐标和 heat 值，计算 extent，调用 ToolBox.runTool("heatmap")。
-    - heatmap 结果是 ImageData，转 canvas，再转 dataURL，作为 singleTile imagery 图层加入。
-    - HeatMapTool 可选 js 或 wasm 模式。
+项目实现位置：
+1. GeoOasis/src/composables/useSetup.ts：CesiumGizmo 初始化和拖拽结果写回。
+2. GeoOasis/src/thirdParty/cesium-gizmo/*：三维编辑控件实现。
+3. GeoOasis/src/editor/type.ts：DrawMode、GizmoMode 类型。
+4. GeoOasis/src/components/ToolsBar.vue：绘制模式、gizmo 模式和模型选择 UI。
 
-12. 协同编辑
-    相关文件：
-    - src/editor/editor.ts
-    - src/editor/provider.ts
-    - src/composables/useAwareness.ts
-    - src/composables/useSync.ts
-    - src/composables/useYjs.ts
-    - src/backend/scripts/run-bat-server.ts
+实现逻辑：
+1. useSetup.addPointerListener 创建 CesiumGizmo(viewer, options)。
+2. drawMode 为 SPACE 时显示 gizmo，否则隐藏。
+3. gizmoMode 变化时同步到 gizmo.mode。
+4. onDragMoving 回调返回 mode 和 result。
+5. TRANSLATE 模式将 result.x/y/z 写入元素 positions。
+6. ROTATE 模式将 heading/pitch/roll 写入元素 orientation。
+7. UNIFORM_SCALE 模式将 result[0]/[1]/[2] 写入元素 scale。
+8. 数据写回 editor.mutateElement 后进入 Yjs，随后由 Editor 同步到 Cesium Entity。
 
-    实现逻辑：
-    - Editor 构造函数创建 Y.Doc，并创建 title、options、elements、layers、baseLayers、assetArray、yImageryLayers 等共享结构。
-    - IndexeddbPersistence("oasis-doc", doc) 实现本地持久化。
-    - changeRoom 创建 HocuspocusProvider，把本地 Y.Doc 接入指定 room。
-    - useSync 系列方法把 Yjs 共享结构转为 Vue 可响应数据，供列表和面板渲染。
-    - useYjs 调用 editor.undoManager.undo/redo。
-    - 后端 Hocuspocus 服务监听 ws://localhost:3001。
+4. 系统编辑记录、本地缓存和撤销恢复
 
-五、后续新增或修改功能时应修改哪些文件
+论文对应内容：
+结合 Yjs 框架与 IndexedDB 数据库，设计轻量级三维场景编辑状态持久化机制，实现编辑操作的本地缓存与恢复。
 
-1. 修改项目标题、页面布局、业务按钮入口
-   - 改 src/App.vue：总布局、页面标题、组件组合、按钮事件转发。
-   - 改 src/components/DataPanel.vue：右侧业务按钮的名称、图标、按钮增删。
-   - 如果按钮要触发 RoadVisual 的新方法，需要在 RoadVisual.vue defineExpose 中暴露，再在 App.vue 通过 roadVisualRef 调用。
+项目实现位置：
+1. GeoOasis/src/editor/editor.ts。
+2. GeoOasis/src/composables/useYjs.ts。
+3. GeoOasis/src/composables/useSync.ts。
+4. GeoOasis/src/store/GeoOasis.store.ts。
 
-2. 新增一种交通态势颜色规则
-   - 改 src/components/RoadVisual.vue 的 getTrafficLevelColor。
-   - 如果改为速度阈值规则，可使用或调整 getSpeedColor / getSpeedColorNormalized。
-   - 如果数据字段从 traffic_level 改成 speeds，需要同步修改 loadTrafficData 和 updateTrafficDisplay 读取字段的逻辑。
-   - 如需更新图例，需要在 RoadVisual.vue 模板和样式里增加图例 UI。
+实现逻辑：
+1. Editor 构造函数创建 Y.Doc。
+2. 各类业务数据都存入 Yjs 共享结构：
+   title -> Y.Text
+   options -> Y.Map
+   ElementsMap -> Y.Map
+   LayersMap -> Y.Map
+   baseLayers -> Y.Map
+   assetArray -> Y.Array
+   YImageryLayers -> Y.Array/Y.Map
+3. IndexeddbPersistence("oasis-doc", this.doc) 把 Y.Doc 自动持久化到浏览器 IndexedDB。
+4. 用户新增、删除、修改元素和图层，本质上都是修改 Yjs 结构。
+5. Y.UndoManager 绑定主要共享结构，记录编辑事务。
+6. useYjs.ts 调用 editor.undoManager.undo() 和 redo() 实现撤销/恢复。
+7. 下次打开页面时，IndexedDB 中的 oasis-doc 会恢复上次编辑状态。
 
-3. 调整交通态势播放速度或时间线样式
-   - 改 src/components/RoadVisual.vue 的 TRAFFIC_UPDATE_INTERVAL。
-   - 改 startTrafficAnimation / resumeTrafficAnimation 的 setInterval 逻辑。
-   - 改 RoadVisual.vue 底部 style 中 .traffic-timeline-control、.timeline-slider、.play-btn 等样式。
+5. 协同通信协议
 
-4. 更换或新增交通态势数据文件
-   - 把新 GeoJSON 放到 public/data/。
-   - 改 RoadVisual.vue 的 loadTrafficData 中 fetch 路径。
-   - 确保数据格式为 FeatureCollection，feature.geometry.type 为 LineString，properties.Id 存在，properties.traffic_level 或对应字段是“时间戳 -> 等级/速度”的对象。
+论文对应内容：
+系统需要数据交互层支撑实时同步和多端共享。项目中协同编辑使用 Yjs + Hocuspocus；视频事件使用普通 WebSocket；融合解析使用 HTTP POST。
 
-5. 新增道路加载数据源
-   - 数据放到 public/data/。
-   - 改 RoadVisual.vue 的 loadRoadData 或 loadGeoJSON。
-   - 如果新数据是 FeatureCollection 而不是当前 roadCity.json 的 geometries 结构，需要调整 loadGeoJSON 的遍历方式。
+协同编辑协议：
+1. 前端：GeoOasis/src/editor/provider.ts 创建 HocuspocusProvider。
+2. 前端地址配置：GeoOasis/src/contants.ts 的 Hocuspocus_URL = "ws://localhost:3001"。
+3. 后端：GeoOasis/src/backend/scripts/run-bat-server.ts 启动 Hocuspocus 服务，默认 HOCUSPOCUS_PORT=3001。
+4. 房间切换：GeoOasis/src/editor/editor.ts 的 changeRoom(roomId)。
+5. 协同内容：同一个 Y.Doc 中的元素、图层、底图、资产库等结构。
 
-6. 新增车辆轨迹数据格式
-   - 改 RoadVisual.vue 的 loadTrajectories。
-   - 重点适配字段：车牌号、经度、纬度、高度、时间戳。
-   - 如果时间不是 timeStamp.$numberLong 或 time，需要新增解析分支。
-   - 如果模型要换，改 assetIndex 或 assetLibrary 默认资产。
+视频事件协议：
+1. Fusion-Analysis/ws_server.py 默认提供 ws://127.0.0.1:8765。
+2. GeoOasis/src/components/RoadVisual.vue 的 getVehicleWsUrl 默认连接 ws://127.0.0.1:8765，也可用 VITE_VEHICLE_WS_URL 配置。
+3. 重点处理 type=line_cross 消息。
+4. video_id 用于匹配 ROAD_LANES 中的路段。
+5. payload.class 用于决定 car/truck 模型。
 
-7. 新增视频路段或调整视频车辆位置
-   - 改 src/components/RoadVisual.vue 的 ROAD_LANES。
-   - 为每个 video_id 配置 start、end、modelUri、minimumPixelSize。
-   - 如果 WebSocket 消息格式变化，改 initSocket 的 onmessage 解析逻辑。
-   - 如果 WebSocket 地址变化，配置 VITE_VEHICLE_WS_URL，或修改 getVehicleWsUrl 默认值。
+融合解析 HTTP 协议：
+1. 前端 POST /run-merge。
+2. Vite 代理到 http://localhost:3000。
+3. Express 后端启动 bat。
+4. 返回 JSON：success、stdout、stderr、message 或 error。
 
-8. 接入新的融合分析程序
-   - 如果仍然是本地 bat，优先用环境变量 BAT_FILE_PATH 配置，不一定要改代码。
-   - 如果接口路径变了，改 src/backend/scripts/run-bat-server.ts 和 vite.config.ts 的 proxy。
-   - 如果要传参数，改 App.vue 的 runMerge 请求体，以及 run-bat-server.ts 的 POST /run-merge 处理逻辑。
-   - 如果融合分析结果要回显到地图，需要在 App.vue 收到响应后调用 RoadVisual 或 editor.addLayer/addElement。
+6. YOLOv11 车辆检测与改进质心追踪
 
-9. 新增工具箱算法
-   - 在 src/tool/ 下新增工具文件，实现 BaseTool 接口。
-   - 在 src/composables/useSetup.ts 的 setupViewer 中 registerTool。
-   - 在 src/composables/useInfoPanel.ts 的 tools 数组中加入工具名。
-   - 在 handleExecuteBtn 中准备输入数据和 options，并处理输出结果如何转成图层或元素。
-   - 如果输出是 GeoJSON，调用 editor.addLayer service/geojson；如果输出是图片，调用 imagery singleTile；如果输出是模型或点线面，调用 editor.addElement。
+论文对应内容：
+基于 YOLOv11 实现车辆目标检测，设计改进质心追踪算法完成车流量统计。
 
-10. 新增底图类型或修改默认底图
-    - 改 src/editor/imageryLayerManager.ts 的 defaultBaseLayers。
-    - 如果是新 provider 类型，改 src/layer/utils.ts 添加生成函数。
-    - 改 src/components/LayersBar.vue 的 baseMapOptions。
+项目实现位置：
+1. Fusion-Analysis/app.py：主检测逻辑。
+2. Fusion-Analysis/src/tracker.py：独立目标跟踪工具类。
+3. Fusion-Analysis/models：模型文件。
 
-11. 新增三维模型资产
-    - 把模型放到 public/ 下。
-    - 改 src/editor/assetLibrary.ts 的 defaultAsset。
-    - 如果模型方向不对，改 RoadVisual.vue 中车辆方向 fixQuat，或 element/utils.ts 中模型 orientation 逻辑。
+app.py 中的实现逻辑：
+1. 从 ultralytics 导入 YOLO。
+2. VideoDetectionTask 为每路视频创建独立线程。
+3. 对每帧调用 YOLO 模型进行检测。
+4. count_objects 读取检测框、类别和中心点。
+5. 对历史 object_tracks 做匹配，匹配时考虑上一帧和前一帧的速度趋势。
+6. 判断中心点运动线段是否与 counting_line 相交。
+7. 发生过线后更新总计数、方向计数和类别计数。
+8. push_line_event 将事件推送到 WebSocket。
 
-12. 修改绘制工具或新增绘制类型
-    - 改 src/components/ToolsBar.vue 的 toolOptions。
-    - 改 src/composables/useSetup.ts 的 activeTool switch，补充鼠标事件逻辑。
-    - 改 src/element/newElement.ts 增加新元素默认结构。
-    - 改 src/element/element.ts 增加类型定义。
-    - 改 src/element/utils.ts 增加 Cesium Entity 生成函数。
-    - 改 src/editor/editor.ts 的 handleYjsElementsEvents，支持新增类型。
+tracker.py 中的实现逻辑：
+1. ObjectTracker 维护 trackers、active_tracks、trajectory_buffer。
+2. update 根据检测框和现有轨迹计算 IoU 匹配。
+3. 未匹配检测创建新 track_id。
+4. 已匹配轨迹更新检测框、中心点、类别、置信度和 last_update。
+5. 对跳变较大的轨迹点做插值。
+6. 对轨迹点做简单移动平均平滑。
+7. draw_tracks 可在视频帧上绘制检测框、ID 和轨迹。
 
-13. 修改属性面板可编辑项
-    - 改 src/components/InfoPanel.vue 的模板展示。
-    - 改 src/composables/useInfoPanel.ts 的 handleElementChange 或 form 生成逻辑。
-    - 如新增属性需要实时影响 Cesium，改 src/editor/editor.ts 的 handleYjsElementsEvents update 分支。
+7. 多路段视频并发映射
 
-14. 修改协同服务器地址或协同逻辑
-    - 改 src/contants.ts 的 Hocuspocus_URL。
-    - 改 src/editor/provider.ts 的 provider 参数。
-    - 改 src/backend/scripts/run-bat-server.ts 的 HOCUSPOCUS_PORT 或服务配置。
-    - 改 useAwareness.ts 可调整协同用户信息、光标状态等。
+论文对应内容：
+提出多路段数据并发映射方法，实现多路段交通数据同步接入与统一表达。
 
-15. 修改坐标定位默认值和视角
-    - 改 src/composables/useCoordinateNavigation.ts 默认 longitude、latitude、height。
-    - 改 flyToCoordinates 的 orientation、duration。
-    - 改 src/composables/useSceneHelper.ts 的 flyToHome。
-    - 改 RoadVisual.vue 的 flyToInitView，可调整视频映射时的默认镜头。
+项目实现位置：
+1. Fusion-Analysis/app.py：VideoDetectionTask，每个视频独立线程。
+2. Fusion-Analysis/MULTI_VIDEO_USAGE.md：多视频使用说明和消息格式。
+3. GeoOasis/src/components/RoadVisual.vue：ROAD_LANES 和 video_id 映射。
 
-六、运行和配置说明
+实现逻辑：
+1. 每个视频任务都有自己的 video_id、计数线和统计状态。
+2. WebSocket 消息都带 video_id。
+3. 前端 ROAD_LANES 将 video_id 映射到三维道路上的起点、终点和模型配置。
+4. 不同视频的车辆事件会生成在不同虚拟车道上，实现多路段统一显示。
+
+8. 交通流预测结果和三维态势表达
+
+论文对应内容：
+基于改进 T-GCN 预测交通流，将速度映射为交通运行状态，并在 Cesium 中进行时空演化展示。
+
+当前项目实现位置：
+1. GeoOasis/public/data/road_network_with_level.geojson：交通等级结果。
+2. GeoOasis/public/data/road_network_with_speeds.geojson：交通速度结果数据文件。
+3. GeoOasis/src/components/RoadVisual.vue：交通态势可视化。
+
+当前项目实现边界：
+1. 仓库内没有发现改进 T-GCN 的训练/推理源码。
+2. 当前前端不直接运行预测模型。
+3. 当前前端读取已经生成的 road_network_with_level.geojson，并把每个时间戳的等级映射为三维路网颜色。
+
+维护建议：
+1. 如果后续需要端到端预测，应新增算法服务接口，例如 /predict-traffic。
+2. T-GCN 模型输出应统一为 road_id、timestamp、speed、traffic_level。
+3. 前端 RoadVisual.vue 可继续复用 loadTrafficData 和 updateTrafficDisplay，只需适配数据来源和字段。
+
+五、运行和配置说明
 
 1. 安装依赖
-   pnpm install
+
+在 GeoOasis 目录执行：
+pnpm install
 
 2. 仅启动前端
-   pnpm dev
 
-3. 启动后端融合分析和协同服务
-   pnpm run-bat-server
+pnpm dev
+
+3. 启动 GeoOasis 后端
+
+pnpm run-bat-server
+
+该命令会启动：
+1. HTTP 服务：http://localhost:3000，用于 /run-merge。
+2. Hocuspocus 协同服务：ws://localhost:3001。
 
 4. 同时启动前端和后端
-   pnpm dev:all
+
+pnpm dev:all
 
 5. 构建
-   pnpm build
 
-6. 关键配置
-   - Cesium Ion token：src/contants.ts 的 CesiumIonDefaultToken。
-   - 协同服务地址：src/contants.ts 的 Hocuspocus_URL，默认 ws://localhost:3001。
-   - 融合分析 bat 路径：环境变量 BAT_FILE_PATH。
-   - HTTP 后端端口：环境变量 HTTP_PORT，默认 3000。
-   - Hocuspocus 端口：环境变量 HOCUSPOCUS_PORT，默认 3001。
-   - 视频车辆 WebSocket：VITE_VEHICLE_WS_URL，默认 ws://127.0.0.1:8765。
+pnpm build
 
-七、数据格式维护说明
+6. 关键配置项
 
-1. 道路 roadCity.json
-   - 当前 RoadVisual.loadGeoJSON 期望 data.geometries 是数组。
-   - 每个 geometry 至少包含 type: "LineString" 和 coordinates。
-   - coordinates 每项为 [longitude, latitude]。
+Cesium Ion token：
+GeoOasis/src/contants.ts 的 CesiumIonDefaultToken。
 
-2. 交通态势 road_network_with_level.geojson
-   - 当前 loadTrafficData 期望 data.features 是数组。
-   - 每个 feature.geometry.type 为 "LineString"。
-   - feature.properties.Id 作为道路 id。
-   - feature.properties.traffic_level 是对象，key 为时间戳，value 为等级数字。
-   - 所有 feature 的时间戳会合并排序，形成播放时间线。
+协同服务地址：
+GeoOasis/src/contants.ts 的 Hocuspocus_URL，当前为 ws://localhost:3001。
 
-3. 轨迹 Simulatedtrajectory1.json
-   - 当前 loadTrajectories 期望文件内容为数组。
-   - 每项使用 plateNo 分组。
-   - 经纬高字段为 longitude、latitude、altitude。
-   - 时间字段支持 timeStamp.$numberLong 或 time。
+融合解析 bat 路径：
+环境变量 BAT_FILE_PATH。未配置时默认使用 Fusion-Analysis/system-start.bat。
+
+GeoOasis HTTP 后端端口：
+环境变量 HTTP_PORT，默认 3000。
+
+Hocuspocus 端口：
+环境变量 HOCUSPOCUS_PORT，默认 3001。
+
+视频车辆 WebSocket：
+环境变量 VITE_VEHICLE_WS_URL，默认 ws://127.0.0.1:8765。
+
+六、数据格式维护说明
+
+1. roadCity.json
+
+当前 RoadVisual.loadGeoJSON 期望：
+1. data.geometries 是数组。
+2. 每个 geometry.type 为 LineString。
+3. geometry.coordinates 为经纬度数组。
+4. coordinates 每项格式为 [longitude, latitude]。
+
+2. road_network_with_level.geojson
+
+当前 RoadVisual.loadTrafficData 期望：
+1. data.features 是数组。
+2. feature.geometry.type 为 LineString。
+3. feature.geometry.coordinates 为道路坐标。
+4. feature.properties.Id 作为道路 id。
+5. feature.properties.traffic_level 是对象。
+6. traffic_level 的 key 是时间戳，value 是交通等级数字。
+
+3. Simulatedtrajectory1.json
+
+当前 RoadVisual.loadTrajectories 期望：
+1. 文件内容是数组。
+2. 使用 plateNo 分组。
+3. 经纬高字段为 longitude、latitude、altitude。
+4. 时间字段支持 timeStamp.$numberLong 或 time。
+5. time 如果是字符串，会将空格替换为 T 后用 Date 解析。
 
 4. 视频 WebSocket 消息
-   - 当前前端重点处理 type: "line_cross"。
-   - 需要包含 video_id。
-   - 车辆类别从 payload.class 读取，值为 truck 时使用卡车，否则默认小汽车。
 
-八、当前代码中建议注意的维护点
+当前前端重点处理：
+1. type 必须为 line_cross。
+2. video_id 用于匹配 ROAD_LANES。
+3. payload.class 为 truck 时显示卡车，否则显示小车。
+4. payload.direction、count_up、count_down、class_line_counts 当前主要用于统计信息，可后续扩展 UI 展示。
 
-1. 多处中文显示为乱码
-   - App.vue、RoadVisual.vue、DataPanel.vue、LayersBar.vue、ToolsBar.vue 等文件中存在中文 mojibake。
-   - 建议统一按 UTF-8 重新保存并恢复中文文案，否则甲方界面文字会影响观感。
+七、后续新增或修改功能时应修改哪些文件
+
+1. 修改业务按钮或页面布局
+
+需要修改：
+1. GeoOasis/src/components/DataPanel.vue：按钮名称、图标、事件。
+2. GeoOasis/src/App.vue：事件接收和转发。
+3. 如果要调用 RoadVisual 新能力，需要在 GeoOasis/src/components/RoadVisual.vue 的 defineExpose 中暴露方法。
+
+2. 修改交通态势颜色规则
+
+需要修改：
+1. GeoOasis/src/components/RoadVisual.vue 的 getTrafficLevelColor。
+2. 如改为速度阈值，可使用或调整 getSpeedColor、getSpeedColorNormalized。
+3. 如字段从 traffic_level 改成 speeds，需要修改 loadTrafficData 和 updateTrafficDisplay。
+
+3. 修改交通态势播放速度或时间线样式
+
+需要修改：
+1. GeoOasis/src/components/RoadVisual.vue 的 TRAFFIC_UPDATE_INTERVAL。
+2. startTrafficAnimation、resumeTrafficAnimation 的 setInterval。
+3. RoadVisual.vue 底部 .traffic-timeline-control、.timeline-slider、.play-btn 等样式。
+
+4. 新增交通态势数据文件
+
+需要操作：
+1. 将新 GeoJSON 放入 GeoOasis/public/data。
+2. 修改 RoadVisual.vue 中 loadTrafficData 的 fetch 路径。
+3. 确保字段包含道路 id、LineString 坐标和时间序列状态值。
+
+5. 新增轨迹数据格式
+
+需要修改：
+1. GeoOasis/src/components/RoadVisual.vue 的 loadTrajectories。
+2. 重点适配车牌号、经度、纬度、高度、时间戳字段。
+3. 如模型不同，修改 App.vue 传入的 assetIndex 或 assetLibrary 默认资产。
+
+6. 新增视频路段或调整视频车辆位置
+
+需要修改：
+1. GeoOasis/src/components/RoadVisual.vue 的 ROAD_LANES。
+2. 为每个 video_id 配置 start、end、modelUri、minimumPixelSize。
+3. 如 WebSocket 消息格式变化，修改 initSocket 的 onmessage 解析逻辑。
+4. 如 WebSocket 地址变化，配置 VITE_VEHICLE_WS_URL 或修改 getVehicleWsUrl 默认值。
+
+7. 接入新的融合分析程序
+
+优先方式：
+1. 通过环境变量 BAT_FILE_PATH 指向新的 bat 文件。
+
+如果接口变化，需要修改：
+1. GeoOasis/src/backend/scripts/run-bat-server.ts。
+2. GeoOasis/vite.config.ts 的代理。
+3. GeoOasis/src/App.vue 的 runMerge 请求体和响应处理。
+
+8. 新增空间分析工具
+
+需要修改：
+1. 在 GeoOasis/src/tool 新增工具文件，实现 BaseTool。
+2. 在 GeoOasis/src/composables/useSetup.ts 中 registerTool。
+3. 在 GeoOasis/src/composables/useInfoPanel.ts 的 tools 数组中加入工具名。
+4. 在 handleExecuteBtn 中准备输入数据、options，并将输出结果转为图层或元素。
+
+9. 新增底图类型
+
+需要修改：
+1. GeoOasis/src/editor/imageryLayerManager.ts 的 defaultBaseLayers。
+2. 如是新 provider 类型，修改 GeoOasis/src/layer/utils.ts。
+3. 修改 GeoOasis/src/components/LayersBar.vue 的底图选项。
+
+10. 新增三维模型资产
+
+需要操作：
+1. 将模型放入 GeoOasis/public。
+2. 修改 GeoOasis/src/editor/assetLibrary.ts 的默认资产。
+3. 如模型方向不对，修改 RoadVisual.vue 中车辆方向修正四元数，或修改 element/utils.ts 中模型 orientation 逻辑。
+
+八、当前维护注意点
+
+1. 项目报告旧文件和部分源码注释存在乱码
+
+本报告已重新以正常中文内容替换项目分析.txt。若界面或源码注释仍显示乱码，建议统一按 UTF-8 重新保存相关文件。
 
 2. contants.ts 文件名拼写
-   - 当前项目文件名是 src/contants.ts，多个文件已按这个名字引用。
-   - 如果改成 constants.ts，需要同步修改所有 import。
 
-3. Cesium Ion token 暴露在前端代码中
-   - 当前 token 写在 src/contants.ts，构建后会出现在前端资源里。
-   - 如果用于正式交付，建议使用受限 token，并在 Cesium Ion 控制台限制域名和权限。
+当前文件名是 GeoOasis/src/contants.ts，不是 constants.ts。多个文件已经按 contants.ts 引用。若改名，需要同步修改所有 import。
 
-4. run-bat-server.ts 实际行为与 README 部分描述不完全一致
-   - 代码默认 HTTP_PORT 是 3000，Hocuspocus 是 3001。
-   - execFile 使用 cmd.exe /k，windowsHide: false，会保留/显示窗口；文档中有“隐藏窗口”的描述。
-   - 如交付甲方，建议确认是否要改为 /c 和 windowsHide: true。
+3. Cesium Ion token 暴露在前端
 
-5. RoadVisual.vue 职责较重
-   - 它同时负责道路、交通态势、轨迹、视频 WebSocket、车辆生成、时间线 UI。
-   - 后续维护量增加时，建议拆为 useTrafficAnalysis、useTrajectoryLayer、useVideoVehicleMapping 等 composable，降低文件复杂度。
+当前 token 写在 src/contants.ts，构建后会暴露在前端资源中。正式交付时建议使用受限 token，并在 Cesium Ion 控制台限制域名和权限。
 
-6. 交通态势每一帧会删除并重建所有道路实体
-   - 目前逻辑简单可靠，但路网变大时会有性能压力。
-   - 后续可改成初始化一次实体，播放时只更新 material，减少实体重建。
+4. RoadVisual.vue 职责较重
 
-7. heatmap.ts 中 isUint8 判断疑似写反
-   - 当前代码为 0 <= num && num >= 255，实际应为 0 <= num && num <= 255。
-   - 如果后续使用数组形式颜色，需要修正。
+RoadVisual.vue 同时负责道路加载、交通态势、轨迹、视频 WebSocket、车辆生成和时间线 UI。后续功能继续增加时，建议拆成：
+1. useRoadNetworkLayer。
+2. useTrafficTimeline。
+3. useTrajectoryLayer。
+4. useVideoVehicleMapping。
 
-8. useSetup.ts 中鼠标移动监听被注释
-   - 当前 handleCanvasMouseMove 已写很多拖拽/绘制预览逻辑，但 MOUSE_MOVE 监听被注释。
-   - 如果希望折线/多边形绘制实时预览或拖拽更新，需要恢复该监听并验证交互。
+5. 交通态势每帧重建实体
 
-9. 数据文件选择需要统一
-   - doc 中提到 road_network_with_speeds.geojson，RoadVisual 实际读取 road_network_with_level.geojson。
-   - 后续建议明确到底以速度还是等级作为交通态势主数据，避免维护人员误改。
+当前 updateTrafficDisplay 每个时间步会删除并重建所有交通路段 polyline。该逻辑简单清晰，但路网变大时可能有性能压力。后续可改为初始化一次实体，播放时只更新 material。
 
-九、给甲方的简要使用路径
+6. T-GCN 模型代码未纳入当前仓库
 
-1. 启动系统：pnpm dev 或 pnpm dev:all。
-2. 打开页面后，使用左侧图层栏选择底图和地形。
+当前仓库没有发现论文中改进 T-GCN 的训练和推理代码。GeoOasis 实现的是预测结果可视化。如果甲方要求完整预测闭环，需要补充算法服务和数据处理流程。
+
+7. 视频映射空间精度是路段级映射
+
+当前视频事件通过 video_id 映射到 ROAD_LANES 中的预设起终点，属于路段级或车道级表达，不是基于摄像机标定的真实图像坐标到地理坐标精确映射。若要提高精度，需要增加摄像头标定和图像坐标到地理坐标转换。
+
+九、甲方简要使用路径
+
+1. 启动系统：执行 pnpm dev 或 pnpm dev:all。
+2. 打开前端页面后，使用左侧图层栏选择底图和地形。
 3. 点击右侧“加载道路数据”，显示路网。
 4. 点击“交通态势预测”，底部出现时间线，可播放或拖动查看不同时间的拥堵状态。
 5. 点击“轨迹数据映射”，显示车辆按历史轨迹运动。
-6. 点击“视频数据映射”，连接视频事件 WebSocket，把识别到的过线车辆映射到三维道路。
-7. 点击“融合分析”，触发本地融合分析程序。
-8. 使用右下角坐标定位面板，可输入经纬度和高度快速定位到目标区域。
+6. 点击“视频数据映射”，连接 Fusion-Analysis 的 WebSocket，将识别到的过线车辆映射到三维道路。
+7. 点击“融合解析”，启动本地 Fusion-Analysis 程序。
+8. 使用左侧图层栏管理图层和元素。
+9. 选中元素后，在右侧属性面板修改属性。
+10. 输入经纬度和高度，可快速定位到指定区域。
 
 十、总结
 
-本项目已经形成一个可演示、可继续维护的公路交通数字孪生平台原型。它的核心价值在于把道路静态数据、交通态势时序数据、车辆轨迹数据、视频识别事件和外部融合分析程序统一接入三维 Cesium 场景。后续迭代应优先处理界面中文乱码、交通态势数据标准统一、RoadVisual.vue 拆分、融合分析结果回显、视频 WebSocket 协议稳定化和大路网性能优化。
+GeoOasis 已形成一个可演示、可维护、可扩展的公路交通数字孪生系统原型。它的核心价值在于将 Cesium 三维场景、道路网络、交通态势预测结果、车辆轨迹、视频识别事件、空间分析工具和协同编辑机制统一到一个浏览器端三维 WebGIS 平台中。
+
+当前项目已经较好覆盖论文中的系统集成和关键技术展示：Cesium 三维场景构建、地表半透明/地下观察、模型编辑、Yjs+IndexedDB 编辑记录、WebSocket 视频事件映射、交通态势时空播放等。后续如需面向生产环境交付，建议优先完善 T-GCN 预测服务闭环、视频空间精确标定、RoadVisual 模块拆分、大路网性能优化、正式 token 管理和中文编码统一。

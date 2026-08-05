@@ -48,6 +48,8 @@ export const defaultAsset: Asset[] = [
     }
 ];
 
+const importedAssetNamesToRemove = new Set(["truckModel.glb", "TJ6_2.glb"]);
+
 export class AssetLibrary {
     public assetArray: Y.Array<Asset>;
     public urlMap: Map<string, string> = new Map();
@@ -62,6 +64,7 @@ export class AssetLibrary {
         }
         const createURLhandler = this.createURLhandler.bind(this);
         this.assetArray.observe(createURLhandler);
+        this.removeImportedAssetRecords();
     }
 
     addAsset(option: {
@@ -107,6 +110,7 @@ export class AssetLibrary {
         _events: Y.YArrayEvent<Asset>,
         _transactions: Y.Transaction
     ) {
+        this.removeImportedAssetRecords();
         this.assetArray.forEach((asset) => {
             if (!this.urlMap.has(asset.id)) {
                 if (asset.data && asset.data instanceof Uint8Array) {
@@ -120,5 +124,19 @@ export class AssetLibrary {
                 }
             }
         });
+    }
+
+    private removeImportedAssetRecords() {
+        for (let index = this.assetArray.length - 1; index >= 0; index--) {
+            const asset = this.assetArray.get(index);
+            if (importedAssetNamesToRemove.has(asset.name)) {
+                const url = this.urlMap.get(asset.id);
+                if (url?.startsWith("blob:")) {
+                    URL.revokeObjectURL(url);
+                }
+                this.urlMap.delete(asset.id);
+                this.assetArray.delete(index, 1);
+            }
+        }
     }
 }

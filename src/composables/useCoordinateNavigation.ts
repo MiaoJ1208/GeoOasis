@@ -5,8 +5,8 @@ import { useGeoOasisStore } from "../store/GeoOasis.store";
 export const useCoordinateNavigation = () => {
     const store = useGeoOasisStore();
     
-    const longitude = ref("117.353878");
-    const latitude = ref("40.261073");
+    const longitude = ref("117.483390");
+    const latitude = ref("40.445983");
     const height = ref("1000");
     const errorMessage = ref("");
 
