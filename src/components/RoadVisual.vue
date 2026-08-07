@@ -54,11 +54,25 @@ import { onMounted, ref, watch } from "vue";
 import * as Cesium from "cesium";
 import { useGeoOasisStore } from "../store/GeoOasis.store";
 import { storeToRefs } from "pinia";
+import { nanoid } from "nanoid";
 
 const store = useGeoOasisStore();
 const { editor, isTrafficAnalysis } = storeToRefs(store);
 let viewer: Cesium.Viewer | null = null;
 const roadEntities: Cesium.Entity[] = [];
+let cpgs84RoadLayersLoaded = false;
+const cpgs84RoadLayers = [
+    {
+        name: "RoadCenterLine",
+        url: "/data/cpgs84/RoadCenterLine.geojson",
+        strokeColor: "#1E40AF",
+        strokeWidth: 4
+    },
+    {
+        name: "LaneCenterline",
+        url: "/data/cpgs84/LaneCenterline.geojson"
+    }
+];
 
 // 交通态势预测相关状态
 const trafficEntities: Cesium.Entity[] = [];
@@ -176,6 +190,26 @@ function loadRoadData() {
         // GeoJSON文件URL
         const geoJsonUrl = "/data/roadCity.json";
         loadGeoJSON(geoJsonUrl);
+        if (!cpgs84RoadLayersLoaded) {
+            cpgs84RoadLayers.forEach((layer) => {
+                editor.value.addLayer({
+                    id: nanoid(),
+                    name: layer.name,
+                    type: "service",
+                    provider: "geojson",
+                    url: layer.url,
+                    show: true,
+                    clampToGround: true,
+                    ...(layer.strokeColor
+                        ? { strokeColor: layer.strokeColor }
+                        : {}),
+                    ...(layer.strokeWidth
+                        ? { strokeWidth: layer.strokeWidth }
+                        : {})
+                });
+            });
+            cpgs84RoadLayersLoaded = true;
+        }
     } else {
         console.error("Editor or Viewer is not available");
     }

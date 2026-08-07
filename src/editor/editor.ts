@@ -4,6 +4,7 @@ import {
     CallbackProperty,
     Cartesian2,
     Cartesian3,
+    Cartographic,
     Matrix4,
     Color,
     DataSource,
@@ -46,6 +47,9 @@ import { PrimitiveCollection2 } from "../scene/PrimitiveCollection2";
 import { getYMapValues } from "./utils";
 import { ToolBox } from "../tool/ToolBox";
 import { setTerrain, TerrainOption } from "./terrain";
+
+const WGS84_3DTILES_HEIGHT_OFFSET = 25;
+const WGS84_3DTILES_PATH = "3dtiles/wgs84/";
 
 export type EditorEvent = {
     "element:add": (key: string) => void;
@@ -391,6 +395,12 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
         ion: GeoOasis3DTilesLayer["ion"]
     ) {
         const cesium3dtiles = await create3dtilesLayer(url, ion);
+        if (!ion && isWGS843DTilesUrl(url)) {
+            applyTilesetHeightOffset(
+                cesium3dtiles,
+                WGS84_3DTILES_HEIGHT_OFFSET
+            );
+        }
         this.viewer?.scene.primitives.add(cesium3dtiles);
         this.cesium3dtilesLayersMap.set(id, cesium3dtiles);
         await this.viewer?.zoomTo(cesium3dtiles);
@@ -525,17 +535,33 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
                     ]);
                     switch (type) {
                         case "service":
-                            const { provider, url } =
+                            const {
+                                provider,
+                                url,
+                                clampToGround,
+                                strokeColor,
+                                strokeWidth
+                            } =
                                 getYMapValues<GeoOasisServiceLayer>(layerYMap, [
                                     "provider",
-                                    "url"
+                                    "url",
+                                    "clampToGround",
+                                    "strokeColor",
+                                    "strokeWidth"
                                 ]);
                             let layer;
                             switch (provider) {
                                 case "geojson":
                                     const geojsonDataSource =
                                         await GeoJsonDataSource.load(url, {
-                                            markerSize: 12
+                                            markerSize: 12,
+                                            clampToGround,
+                                            stroke: strokeColor
+                                                ? Color.fromCssColorString(
+                                                      strokeColor
+                                                  )
+                                                : undefined,
+                                            strokeWidth
                                         });
                                     layer = geojsonDataSource;
                                     break;
@@ -627,6 +653,41 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
             });
         }
     }
+}
+
+function isWGS843DTilesUrl(url: GeoOasis3DTilesLayer["url"]): boolean {
+    return url.replace(/\\/g, "/").toLowerCase().includes(WGS84_3DTILES_PATH);
+}
+
+function applyTilesetHeightOffset(
+    tileset: Cesium3DTileset,
+    heightOffset: number
+) {
+    const cartographic = Cartographic.fromCartesian(
+        tileset.boundingSphere.center
+    );
+    const surface = Cartesian3.fromRadians(
+        cartographic.longitude,
+        cartographic.latitude,
+        0
+    );
+    const offset = Cartesian3.fromRadians(
+        cartographic.longitude,
+        cartographic.latitude,
+        heightOffset
+    );
+    const translation = Cartesian3.subtract(
+        offset,
+        surface,
+        new Cartesian3()
+    );
+    const translationMatrix = Matrix4.fromTranslation(translation);
+
+    tileset.modelMatrix = Matrix4.multiply(
+        translationMatrix,
+        tileset.modelMatrix,
+        new Matrix4()
+    );
 }
 
 async function create3dtilesLayer(

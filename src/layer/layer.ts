@@ -43,6 +43,9 @@ export interface GeoOasisServiceLayer extends GeoOasisBaseLayer {
     type: "service";
     provider: "geojson" | "gpx" | "kml" | "czml" | "custom";
     url: string | Object;
+    clampToGround?: boolean;
+    strokeColor?: string;
+    strokeWidth?: number;
 }
 
 export interface GeoOasis3DTilesLayer extends GeoOasisBaseLayer {
