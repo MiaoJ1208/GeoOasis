@@ -60,19 +60,49 @@ const store = useGeoOasisStore();
 const { editor, isTrafficAnalysis } = storeToRefs(store);
 let viewer: Cesium.Viewer | null = null;
 const roadEntities: Cesium.Entity[] = [];
-let cpgs84RoadLayersLoaded = false;
-const cpgs84RoadLayers = [
+const roadCityUrl = "/data/roadCity.json";
+let roadCityLoadPromise: Promise<void> | null = null;
+let isLoadingCpgs84RoadLayers = false;
+type Cpgs84RoadLayer = {
+    name: string;
+    url: string;
+    strokeColor?: string;
+    strokeWidth?: number;
+    fillColor?: string;
+    fillOpacity?: number;
+    zIndex: number;
+};
+const cpgs84RoadLayers: Cpgs84RoadLayer[] = [
+    {
+        name: "RoadSection",
+        url: "/data/cpgs84/RoadSection.geojson",
+        fillColor:'#64748B',
+        fillOpacity: 0.85,
+        zIndex: 10
+    },
+    {
+        name: "LanePolygon",
+        url: "/data/cpgs84/LanePolygon.geojson",
+        fillColor: "#99968E",
+        fillOpacity: 0.8,
+        zIndex: 20
+    },
     {
         name: "RoadCenterLine",
         url: "/data/cpgs84/RoadCenterLine.geojson",
         strokeColor: "#1E40AF",
-        strokeWidth: 4
+        strokeWidth: 4,
+        zIndex: 100
     },
     {
         name: "LaneCenterline",
-        url: "/data/cpgs84/LaneCenterline.geojson"
+        url: "/data/cpgs84/LaneCenterline.geojson",
+        strokeColor: "#f6de07",
+        strokeWidth: 2,
+        zIndex: 110
     }
 ];
+
 
 // 交通态势预测相关状态
 const trafficEntities: Cesium.Entity[] = [];
@@ -178,21 +208,67 @@ const loadGeoJSON = async (url: string) => {
             }
         });
 
-        viewer?.flyTo(roadEntities[0]);
+        /*
+        // viewer?.flyTo(roadEntities[0]);
+        viewer?.camera.flyTo({
+            destination: Cesium.Cartesian3.fromDegrees(117.415, 40.3999, 1000) //兴隆西收费站附近
+        });
+        */
     } catch (error) {
         console.error("Error loading GeoJSON:", error);
     }
 };
 
-function loadRoadData() {
-    if (editor?.value?.viewer) {
-        viewer = editor.value.viewer;
+function flyToCpgs84RoadView() {
+    // viewer?.flyTo(roadEntities[0]);
+    viewer?.camera.flyTo({
+        destination: Cesium.Cartesian3.fromDegrees(117.415, 40.3999, 1000) //兴隆西收费站附近
+    });
+}
+
+function deleteExistingCpgs84RoadLayers() {
+    const currentEditor = editor.value;
+    if (!currentEditor) {
+        return;
+    }
+
+    const roadLayerUrls = new Set(cpgs84RoadLayers.map((layer) => layer.url));
+    const layerIds = Array.from(currentEditor.layers.entries())
+        .filter(([, layerYMap]) => {
+            return (
+                layerYMap.get("type") === "service" &&
+                layerYMap.get("provider") === "geojson" &&
+                roadLayerUrls.has(layerYMap.get("url"))
+            );
+        })
+        .map(([id]) => id);
+
+    layerIds.forEach((id) => {
+        currentEditor.deleteLayer(id);
+    });
+}
+
+async function loadRoadData() {
+    const currentEditor = editor.value;
+    if (currentEditor?.viewer) {
+        viewer = currentEditor.viewer;
+        flyToCpgs84RoadView();
         // GeoJSON文件URL
-        const geoJsonUrl = "/data/roadCity.json";
-        loadGeoJSON(geoJsonUrl);
-        if (!cpgs84RoadLayersLoaded) {
+        if (roadEntities.length === 0) {
+            roadCityLoadPromise ??= loadGeoJSON(roadCityUrl).finally(() => {
+                roadCityLoadPromise = null;
+            });
+            await roadCityLoadPromise;
+        }
+        if (isLoadingCpgs84RoadLayers) {
+            return;
+        }
+
+        isLoadingCpgs84RoadLayers = true;
+        try {
+            deleteExistingCpgs84RoadLayers();
             cpgs84RoadLayers.forEach((layer) => {
-                editor.value.addLayer({
+                currentEditor.addLayer({
                     id: nanoid(),
                     name: layer.name,
                     type: "service",
@@ -205,10 +281,16 @@ function loadRoadData() {
                         : {}),
                     ...(layer.strokeWidth
                         ? { strokeWidth: layer.strokeWidth }
-                        : {})
+                        : {}),
+                    ...(layer.fillColor ? { fillColor: layer.fillColor } : {}),
+                    ...(layer.fillOpacity !== undefined
+                        ? { fillOpacity: layer.fillOpacity }
+                        : {}),
+                    zIndex: layer.zIndex
                 });
             });
-            cpgs84RoadLayersLoaded = true;
+        } finally {
+            isLoadingCpgs84RoadLayers = false;
         }
     } else {
         console.error("Editor or Viewer is not available");

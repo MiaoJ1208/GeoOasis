@@ -46,6 +46,9 @@ export interface GeoOasisServiceLayer extends GeoOasisBaseLayer {
     clampToGround?: boolean;
     strokeColor?: string;
     strokeWidth?: number;
+    fillColor?: string;
+    fillOpacity?: number;
+    zIndex?: number;
 }
 
 export interface GeoOasis3DTilesLayer extends GeoOasisBaseLayer {

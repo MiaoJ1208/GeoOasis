@@ -540,18 +540,29 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
                                 url,
                                 clampToGround,
                                 strokeColor,
-                                strokeWidth
+                                strokeWidth,
+                                fillColor,
+                                fillOpacity,
+                                zIndex
                             } =
                                 getYMapValues<GeoOasisServiceLayer>(layerYMap, [
                                     "provider",
                                     "url",
                                     "clampToGround",
                                     "strokeColor",
-                                    "strokeWidth"
+                                    "strokeWidth",
+                                    "fillColor",
+                                    "fillOpacity",
+                                    "zIndex"
                                 ]);
                             let layer;
                             switch (provider) {
                                 case "geojson":
+                                    const fill = fillColor
+                                        ? Color.fromCssColorString(
+                                              fillColor
+                                          ).withAlpha(fillOpacity ?? 0.35)
+                                        : undefined;
                                     const geojsonDataSource =
                                         await GeoJsonDataSource.load(url, {
                                             markerSize: 12,
@@ -561,8 +572,27 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
                                                       strokeColor
                                                   )
                                                 : undefined,
-                                            strokeWidth
+                                            strokeWidth,
+                                            fill
                                         });
+                                    if (zIndex !== undefined) {
+                                        geojsonDataSource.entities.values.forEach(
+                                            (entity) => {
+                                                if (entity.polyline) {
+                                                    entity.polyline.zIndex =
+                                                        new ConstantProperty(
+                                                            zIndex
+                                                        );
+                                                }
+                                                if (entity.polygon) {
+                                                    entity.polygon.zIndex =
+                                                        new ConstantProperty(
+                                                            zIndex
+                                                        );
+                                                }
+                                            }
+                                        );
+                                    }
                                     layer = geojsonDataSource;
                                     break;
                                 case "gpx":

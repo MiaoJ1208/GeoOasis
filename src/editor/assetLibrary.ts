@@ -12,11 +12,6 @@ export type Asset = {
 
 export const defaultAsset: Asset[] = [
     {
-        id: "asset-2",
-        name: "airplane",
-        url: "/Cesium_Air.glb"
-    },
-    {
         id: "asset-3",
         name: "road",
         url: "/road_hd/road_hd/scene.gltf"
@@ -32,11 +27,6 @@ export const defaultAsset: Asset[] = [
         url: "/camera/bc21bedf08ff475b9bd353ce1e4b4c34.gltf"
     },
     {
-        id: "asset-6",
-        name: "pole",
-        url: "/ligan/LiGan_A.gltf"
-    },
-    {
         id: "asset-7",
         name: "signs",
         url: "/signs/c280dde26e4e4a0185d791318a20008d.gltf"
@@ -45,6 +35,11 @@ export const defaultAsset: Asset[] = [
         id: "asset-8",
         name: "truck",
         url: "/truckModel.glb"
+    },
+    {
+        id: "asset-9",
+        name: "light",
+        url: "/street_light/scene.gltf"
     }
 ];
 

@@ -1,0 +1,11 @@
+Model Information:
+* title:	Street light with parking lot light
+* source:	https://sketchfab.com/3d-models/street-light-with-parking-lot-light-23c04b5799014b58aa2572a7142eb89d
+* author:	The Street Light Man (https://sketchfab.com/thestreetlightman)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Street light with parking lot light" (https://sketchfab.com/3d-models/street-light-with-parking-lot-light-23c04b5799014b58aa2572a7142eb89d) by The Street Light Man (https://sketchfab.com/thestreetlightman) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
