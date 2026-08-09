@@ -110,6 +110,7 @@ const trafficDataMap = new Map<
     string,
     { coordinates: number[][]; traffic_level: Record<string, number> }
 >();
+let trafficDataSource: Cesium.CustomDataSource | null = null;
 let trafficTimelineIndex = 0;
 let trafficTimestamps: string[] = [];
 let trafficAnimationTimer: ReturnType<typeof setInterval> | null = null;
@@ -120,42 +121,43 @@ const trafficTimelineProgress = ref(0); // 0-100
 const isTrafficPlaying = ref(false); // 播放状态
 const currentTrafficTimestamp = ref(""); // 当前时间戳显示
 
-/**
+/** 最终未使用，而是根据level返回颜色
  * 根据速度值返回对应的颜色（60快速绿色、40正常黄色、20缓慢橙色、<20拥堵红色）
  */
-function getSpeedColor(speed: number): Cesium.Color {
-    if (speed >= 60) {
-        return Cesium.Color.GREEN.withAlpha(0.8);
-    } else if (speed >= 40) {
-        return Cesium.Color.YELLOW.withAlpha(0.8);
-    } else if (speed >= 20) {
-        return Cesium.Color.ORANGE.withAlpha(0.8);
-    } else {
-        return Cesium.Color.RED.withAlpha(0.8);
-    }
-}
-function getSpeedColorNormalized(speed: number): Cesium.Color {
-    const minSpeed = 0.00303;
-    const maxSpeed = 39.0683;
+// function getSpeedColor(speed: number): Cesium.Color {
+//     if (speed >= 60) {
+//         return Cesium.Color.GREEN.withAlpha(0.8);
+//     } else if (speed >= 40) {
+//         return Cesium.Color.YELLOW.withAlpha(0.8);
+//     } else if (speed >= 20) {
+//         return Cesium.Color.ORANGE.withAlpha(0.8);
+//     } else {
+//         return Cesium.Color.RED.withAlpha(0.8);
+//     }
+// }
+
+// function getSpeedColorNormalized(speed: number): Cesium.Color {
+//    const minSpeed = 0.00303;
+//    const maxSpeed = 39.0683;
 
     // 归一化速度到 0~1
-    const ratio = Cesium.Math.clamp(
-        (speed - minSpeed) / (maxSpeed - minSpeed),
-        0.0,
-        1.0
-    );
+//    const ratio = Cesium.Math.clamp(
+//        (speed - minSpeed) / (maxSpeed - minSpeed),
+//        0.0,
+//        1.0
+//    );
 
     // 使用渐变颜色: 红->橙->黄->绿
-    if (ratio >= 0.75) {
-        return Cesium.Color.GREEN.withAlpha(0.8);
-    } else if (ratio >= 0.5) {
-        return Cesium.Color.YELLOW.withAlpha(0.8);
-    } else if (ratio >= 0.25) {
-        return Cesium.Color.ORANGE.withAlpha(0.8);
-    } else {
-        return Cesium.Color.RED.withAlpha(0.8);
-    }
-}
+//    if (ratio >= 0.75) {
+//       return Cesium.Color.GREEN.withAlpha(0.8);
+//    } else if (ratio >= 0.5) {
+//        return Cesium.Color.YELLOW.withAlpha(0.8);
+//    } else if (ratio >= 0.25) {
+//        return Cesium.Color.ORANGE.withAlpha(0.8);
+//    } else {
+//       return Cesium.Color.RED.withAlpha(0.8);
+//    }
+//}
 
 function getTrafficLevelColor(level: number): Cesium.Color {
     switch (level) {
@@ -305,7 +307,7 @@ async function loadTrafficData() {
     viewer = editor.value.viewer;
 
     try {
-        const response = await fetch("/data/road_network_with_level.geojson");
+        const response = await fetch("/data/cpgs84/chengping_traffic_with_speeds.geojson");
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -362,6 +364,11 @@ function updateTrafficDisplay(timestampIndex: number) {
     }
 
     const currentTimestamp = trafficTimestamps[timestampIndex];
+    if (!trafficDataSource) {
+        trafficDataSource = new Cesium.CustomDataSource("cpgs_traffic_analysis");
+        viewer.dataSources.add(trafficDataSource);
+    }
+    viewer.dataSources.raiseToTop(trafficDataSource);
 
     // 更新进度条和时间戳显示
     trafficTimelineProgress.value =
@@ -369,7 +376,9 @@ function updateTrafficDisplay(timestampIndex: number) {
     currentTrafficTimestamp.value = currentTimestamp;
 
     // 清除旧的交通实体
-    trafficEntities.forEach((entity) => viewer?.entities.remove(entity));
+    trafficEntities.forEach((entity) =>
+        trafficDataSource?.entities.remove(entity)
+    );
     trafficEntities.length = 0;
 
     // 为每条路创建新的实体，根据当前时间戳的速度值着色
@@ -384,14 +393,14 @@ function updateTrafficDisplay(timestampIndex: number) {
 
             const color = getTrafficLevelColor(speed);
 
-            const entity = viewer?.entities.add({
+            const entity = trafficDataSource?.entities.add({
                 name: `Road-${roadId}`,
                 polyline: {
                     positions: positions,
                     width: 6,
                     material: color,
                     clampToGround: true,
-                    zIndex: 100
+                    zIndex: new Cesium.ConstantProperty(10000)
                 }
             });
 
@@ -400,6 +409,7 @@ function updateTrafficDisplay(timestampIndex: number) {
             }
         }
     });
+    viewer.dataSources.raiseToTop(trafficDataSource);
 
     console.log(
         `[Traffic Update] Timestamp: ${currentTimestamp}, Entities: ${trafficEntities.length}`
@@ -438,7 +448,9 @@ function stopTrafficAnimation() {
     isTrafficPlaying.value = false;
 
     // 清除所有交通实体
-    trafficEntities.forEach((entity) => viewer?.entities.remove(entity));
+    trafficEntities.forEach((entity) =>
+        trafficDataSource?.entities.remove(entity)
+    );
     trafficEntities.length = 0;
 
     console.log("[Traffic] Animation stopped");
