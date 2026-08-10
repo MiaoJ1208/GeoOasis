@@ -516,6 +516,333 @@ function handleTimelineChange(progress: number) {
  * 加载并可视化轨迹数据
  */
 const vehicleEntities: Cesium.Entity[] = [];
+const k37TrajectoryEntities: Cesium.Entity[] = [];
+let k37TrajectoryDataSource: Cesium.CustomDataSource | null = null;
+const K37_TRAJECTORY_URL =
+    "/data/cpgs84/Trajectory/k37_semantic_laneconstrained_full.csv";
+const K37_MODEL_URL = "/SUV_gltf/b03505c6f4f942e5ade70692a899e702.gltf";
+const K37_FRAME_RATE = 25;
+const K37_MODEL_HEIGHT = 0;
+const K37_TRAJECTORY_COLOR = Cesium.Color.CYAN.withAlpha(0.95);
+let isK37TrajectoriesLoaded = false;
+let isLoadingK37Trajectories = false;
+
+type K37TrajectoryPoint = {
+    trackId: string;
+    frame: number;
+    lon: number;
+    lat: number;
+};
+
+function parseCsvLine(line: string) {
+    const values: string[] = [];
+    let current = "";
+    let inQuotes = false;
+
+    for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        const next = line[i + 1];
+
+        if (char === '"' && inQuotes && next === '"') {
+            current += '"';
+            i++;
+        } else if (char === '"') {
+            inQuotes = !inQuotes;
+        } else if (char === "," && !inQuotes) {
+            values.push(current);
+            current = "";
+        } else {
+            current += char;
+        }
+    }
+
+    values.push(current);
+    return values;
+}
+
+function parseK37TrajectoryCsv(csvText: string) {
+    const lines = csvText.split(/\r?\n/).filter((line) => line.trim());
+    if (lines.length < 2) {
+        return new Map<string, K37TrajectoryPoint[]>();
+    }
+
+    const headers = parseCsvLine(lines[0]).map((header) => header.trim());
+    const columnIndex = new Map(headers.map((header, index) => [header, index]));
+    const requiredColumns = ["frame", "track_id", "longitude", "latitude"];
+
+    for (const column of requiredColumns) {
+        if (!columnIndex.has(column)) {
+            throw new Error(`Missing required CSV column: ${column}`);
+        }
+    }
+
+    const frameIndex = columnIndex.get("frame")!;
+    const trackIndex = columnIndex.get("track_id")!;
+    const lonIndex = columnIndex.get("longitude")!;
+    const latIndex = columnIndex.get("latitude")!;
+    const groups = new Map<string, K37TrajectoryPoint[]>();
+
+    for (const line of lines.slice(1)) {
+        const values = parseCsvLine(line);
+        const frame = Number(values[frameIndex]);
+        const trackId = values[trackIndex]?.trim();
+        const lon = Number(values[lonIndex]);
+        const lat = Number(values[latIndex]);
+
+        if (
+            !trackId ||
+            !Number.isFinite(frame) ||
+            !Number.isFinite(lon) ||
+            !Number.isFinite(lat)
+        ) {
+            continue;
+        }
+
+        if (!groups.has(trackId)) {
+            groups.set(trackId, []);
+        }
+
+        groups.get(trackId)!.push({ trackId, frame, lon, lat });
+    }
+
+    for (const points of groups.values()) {
+        points.sort((a, b) => a.frame - b.frame);
+    }
+
+    return groups;
+}
+
+function clearK37Trajectories() {
+    if (!viewer && editor?.value?.viewer) {
+        viewer = editor.value.viewer;
+    }
+
+    if (viewer) {
+        if (k37TrajectoryDataSource) {
+            k37TrajectoryDataSource.entities.removeAll();
+        }
+
+        const staleEntities = viewer.entities.values.filter((entity) =>
+            entity.id.startsWith("k37-veh-")
+        );
+        for (const entity of staleEntities) {
+            viewer.entities.remove(entity);
+        }
+    }
+
+    k37TrajectoryEntities.length = 0;
+    isK37TrajectoriesLoaded = false;
+}
+
+async function loadK37Trajectories() {
+    if (!editor?.value?.viewer) {
+        return;
+    }
+
+    viewer = editor.value.viewer;
+    clearK37Trajectories();
+    if (!k37TrajectoryDataSource) {
+        k37TrajectoryDataSource = new Cesium.CustomDataSource(
+            "k37_trajectories"
+        );
+        viewer.dataSources.add(k37TrajectoryDataSource);
+    }
+    viewer.dataSources.raiseToTop(k37TrajectoryDataSource);
+
+    console.log(`[RoadVisual] Loading k37 trajectories: ${K37_TRAJECTORY_URL}`);
+    const res = await fetch(`${K37_TRAJECTORY_URL}?t=${Date.now()}`);
+    if (!res.ok) {
+        throw new Error(`Failed to fetch k37 CSV: HTTP ${res.status}`);
+    }
+
+    const csvText = await res.text();
+    const groups = parseK37TrajectoryCsv(csvText);
+
+    if (groups.size === 0) {
+        console.warn("[RoadVisual] No valid k37 trajectory points");
+        return;
+    }
+
+    let minFrame = Number.POSITIVE_INFINITY;
+    let maxFrame = Number.NEGATIVE_INFINITY;
+    let firstTrajectoryPoint: K37TrajectoryPoint | null = null;
+    for (const points of groups.values()) {
+        if (points.length === 0) continue;
+        minFrame = Math.min(minFrame, points[0].frame);
+        maxFrame = Math.max(maxFrame, points[points.length - 1].frame);
+        if (
+            !firstTrajectoryPoint ||
+            points[0].frame < firstTrajectoryPoint.frame
+        ) {
+            firstTrajectoryPoint = points[0];
+        }
+    }
+
+    const startJD = Cesium.JulianDate.now();
+    const stopJD = Cesium.JulianDate.addSeconds(
+        startJD,
+        (maxFrame - minFrame) / K37_FRAME_RATE,
+        new Cesium.JulianDate()
+    );
+
+    for (const [trackId, points] of groups) {
+        if (points.length === 0) continue;
+
+        const sampled = new Cesium.SampledPositionProperty();
+        const trackSamples: Array<{
+            seconds: number;
+            position: Cesium.Cartesian3;
+        }> = [];
+        const vehicleStartJD = Cesium.JulianDate.addSeconds(
+            startJD,
+            (points[0].frame - minFrame) / K37_FRAME_RATE,
+            new Cesium.JulianDate()
+        );
+        const vehicleStopJD = Cesium.JulianDate.addSeconds(
+            startJD,
+            (points[points.length - 1].frame - minFrame) / K37_FRAME_RATE,
+            new Cesium.JulianDate()
+        );
+
+        for (const point of points) {
+            const seconds = (point.frame - minFrame) / K37_FRAME_RATE;
+            const pointTime = Cesium.JulianDate.addSeconds(
+                startJD,
+                seconds,
+                new Cesium.JulianDate()
+            );
+            const position = Cesium.Cartesian3.fromDegrees(
+                point.lon,
+                point.lat,
+                K37_MODEL_HEIGHT
+            );
+            sampled.addSample(pointTime, position);
+            trackSamples.push({ seconds, position });
+        }
+
+        const velOri = new Cesium.VelocityOrientationProperty(sampled);
+        const fixQuat = Cesium.Quaternion.fromAxisAngle(
+            Cesium.Cartesian3.UNIT_Z,
+            Cesium.Math.toRadians(-90)
+        );
+        viewer.entities.removeById(`k37-veh-${trackId}`);
+        k37TrajectoryDataSource.entities.removeById(`k37-veh-${trackId}`);
+        const entity = k37TrajectoryDataSource.entities.add({
+            id: `k37-veh-${trackId}`,
+            name: `k37-${trackId}`,
+            availability: new Cesium.TimeIntervalCollection([
+                new Cesium.TimeInterval({
+                    start: vehicleStartJD,
+                    stop: vehicleStopJD
+                })
+            ]),
+            position: sampled,
+            orientation: new Cesium.CallbackProperty(
+                (time?: Cesium.JulianDate, result?: Cesium.Quaternion) => {
+                    if (!time) return undefined;
+                    const q = velOri.getValue(time);
+                    if (!q) return undefined;
+                    return Cesium.Quaternion.multiply(
+                        q,
+                        fixQuat,
+                        result || new Cesium.Quaternion()
+                    );
+                },
+                false
+            ),
+            model: {
+                uri: K37_MODEL_URL,
+                heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+                minimumPixelSize: 40,
+                maximumScale: 20
+            },
+            point: {
+                pixelSize: 8,
+                color: K37_TRAJECTORY_COLOR,
+                outlineColor: Cesium.Color.WHITE,
+                outlineWidth: 2,
+                heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+                disableDepthTestDistance: Number.POSITIVE_INFINITY
+            },
+            polyline: {
+                positions: new Cesium.CallbackProperty((time) => {
+                    if (!time) return [];
+                    const elapsed = Cesium.JulianDate.secondsDifference(
+                        time,
+                        startJD
+                    );
+                    return trackSamples
+                        .filter(
+                            (sample) =>
+                                sample.seconds <= elapsed
+                        )
+                        .map((sample) => sample.position);
+                }, false),
+                width: 3,
+                material: K37_TRAJECTORY_COLOR,
+                clampToGround: true,
+                zIndex: new Cesium.ConstantProperty(20000)
+            },
+            label: {
+                text: trackId,
+                font: "12px sans-serif",
+                fillColor: Cesium.Color.WHITE,
+                style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                outlineWidth: 2,
+                heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+                disableDepthTestDistance: Number.POSITIVE_INFINITY,
+                pixelOffset: new Cesium.Cartesian2(0, -30)
+            }
+        });
+
+        k37TrajectoryEntities.push(entity);
+    }
+
+    viewer.clock.startTime = startJD.clone();
+    viewer.clock.stopTime = stopJD.clone();
+    viewer.clock.currentTime = startJD.clone();
+    viewer.clock.clockRange = Cesium.ClockRange.CLAMPED;
+    viewer.clock.multiplier = 1;
+    viewer.clock.shouldAnimate = true;
+    viewer.dataSources.raiseToTop(k37TrajectoryDataSource);
+    if (firstTrajectoryPoint) {
+        viewer.camera.flyTo({
+            destination: Cesium.Cartesian3.fromDegrees(
+                firstTrajectoryPoint.lon,
+                firstTrajectoryPoint.lat,
+                1000
+            )
+        });
+    }
+    isK37TrajectoriesLoaded = true;
+    console.log(
+        `[RoadVisual] Loaded ${k37TrajectoryEntities.length} k37 trajectories`
+    );
+
+    return k37TrajectoryEntities;
+}
+
+async function toggleK37Trajectories() {
+    if (isLoadingK37Trajectories) {
+        return;
+    }
+
+    if (isK37TrajectoriesLoaded) {
+        clearK37Trajectories();
+        return;
+    }
+
+    isLoadingK37Trajectories = true;
+    try {
+        await loadK37Trajectories();
+    } catch (err) {
+        console.error("[RoadVisual] Failed to load k37 trajectories:", err);
+        clearK37Trajectories();
+    } finally {
+        isLoadingK37Trajectories = false;
+    }
+}
+
 async function loadTrajectories(
     trajUrl = "/data/20251030_163823_170604/Simulatedtrajectory1.json",
     assetIndex = 2
@@ -1233,7 +1560,6 @@ function flyToInitView() {
     }
 }
 
-let trajectoriesLoaded = false;
 
 // 监听交通态势分析状态
 watch(
@@ -1304,6 +1630,7 @@ onMounted(() => {
 defineExpose({
     loadRoadData,
     loadTrajectories,
+    toggleK37Trajectories,
     videoVehicle,
     connectVehicleSocket,
     // 交通态势相关导出

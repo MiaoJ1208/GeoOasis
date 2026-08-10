@@ -9,7 +9,6 @@ import InfoPanel from "./components/InfoPanel.vue";
 import RoadVisual from "./components/RoadVisual.vue";
 import { useGeoOasisStore } from "./store/GeoOasis.store";
 import { ElMessage } from "element-plus";
-import { onMounted, watch } from "vue";
 import { ref } from "vue";
 const roadVisualRef = ref();
 const store = useGeoOasisStore();
@@ -17,10 +16,7 @@ function onLoadRoad() {
     roadVisualRef.value?.loadRoadData();
 }
 function handleLoadRoad() {
-    roadVisualRef.value?.loadTrajectories(
-        "/data/20251030_163823_170604/Simulatedtrajectory1.json",
-        2
-    );
+    roadVisualRef.value?.toggleK37Trajectories();
 }
 function videoVehicle() {
     roadVisualRef.value?.videoVehicle();
