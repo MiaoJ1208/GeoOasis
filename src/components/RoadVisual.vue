@@ -1,5 +1,42 @@
-<template>
+﻿<template>
     <div class="road-visualization" v-if="true">
+        <div v-if="isTrajectoryTimelineVisible" class="trajectory-timeline-control">
+            <div class="timeline-container">
+                <button
+                    class="timeline-btn play-btn"
+                    @click="
+                        isTrajectoryPlaying
+                            ? pauseTrajectoryPlayback()
+                            : resumeTrajectoryPlayback()
+                    "
+                    :title="isTrajectoryPlaying ? '暂停' : '播放'"
+                >
+                    {{ isTrajectoryPlaying ? "⏸" : "▶" }}
+                </button>
+
+                <div class="progress-container">
+                    <input
+                        type="range"
+                        min="0"
+                        max="100"
+                        :value="trajectoryTimelineProgress"
+                        @input="
+                            (e) =>
+                                handleTrajectoryTimelineChange(
+                                    parseFloat(
+                                        (e.target as HTMLInputElement).value
+                                    )
+                                )
+                        "
+                        class="timeline-slider"
+                    />
+                </div>
+
+                <div class="progress-percent">
+                    {{ Math.round(trajectoryTimelineProgress) }}%
+                </div>
+            </div>
+        </div>
         <!-- 交通态势时间线控制条 -->
         <div v-if="isTrafficAnalysis" class="traffic-timeline-control">
             <div class="timeline-container">
@@ -120,6 +157,13 @@ const TRAFFIC_UPDATE_INTERVAL = 1000; // 1秒更新一次
 const trafficTimelineProgress = ref(0); // 0-100
 const isTrafficPlaying = ref(false); // 播放状态
 const currentTrafficTimestamp = ref(""); // 当前时间戳显示
+
+const isTrajectoryTimelineVisible = ref(false);
+const isTrajectoryPlaying = ref(false);
+const trajectoryTimelineProgress = ref(0);
+let trajectoryStartTime: Cesium.JulianDate | null = null;
+let trajectoryStopTime: Cesium.JulianDate | null = null;
+let removeTrajectoryClockListener: (() => void) | null = null;
 
 /** 最终未使用，而是根据level返回颜色
  * 根据速度值返回对应的颜色（60快速绿色、40正常黄色、20缓慢橙色、<20拥堵红色）
@@ -518,12 +562,12 @@ function handleTimelineChange(progress: number) {
 const vehicleEntities: Cesium.Entity[] = [];
 const k37TrajectoryEntities: Cesium.Entity[] = [];
 let k37TrajectoryDataSource: Cesium.CustomDataSource | null = null;
-const K37_TRAJECTORY_URL =
-    "/data/cpgs84/Trajectory/k37_semantic_laneconstrained_full.csv";
-const K37_MODEL_URL = "/SUV_gltf/b03505c6f4f942e5ade70692a899e702.gltf";
-const K37_FRAME_RATE = 25;
-const K37_MODEL_HEIGHT = 0;
-const K37_TRAJECTORY_COLOR = Cesium.Color.CYAN.withAlpha(0.95);
+const TRAJECTORY_URL =
+    "/data/cpgs84/Trajectory/k38_full_single_run.csv";
+const TRAJECTORY_MODEL_URL = "/SUV_gltf/b03505c6f4f942e5ade70692a899e702.gltf";
+const TRAJECTORY_FRAME_RATE = 25;  //假定帧率
+const TRAJECTORY_MODEL_HEIGHT = 0;
+const TRAJECTORY_COLOR = Cesium.Color.CYAN.withAlpha(0.95);
 let isK37TrajectoriesLoaded = false;
 let isLoadingK37Trajectories = false;
 
@@ -533,6 +577,114 @@ type K37TrajectoryPoint = {
     lon: number;
     lat: number;
 };
+
+function stopTrajectoryTimelineSync() {
+    if (removeTrajectoryClockListener) {
+        removeTrajectoryClockListener();
+        removeTrajectoryClockListener = null;
+    }
+}
+
+function updateTrajectoryTimelineProgress() {
+    if (!viewer || !trajectoryStartTime || !trajectoryStopTime) {
+        return;
+    }
+
+    const totalSeconds = Cesium.JulianDate.secondsDifference(
+        trajectoryStopTime,
+        trajectoryStartTime
+    );
+    if (totalSeconds <= 0) {
+        trajectoryTimelineProgress.value = 100;
+        isTrajectoryPlaying.value = false;
+        return;
+    }
+
+    const elapsedSeconds = Cesium.JulianDate.secondsDifference(
+        viewer.clock.currentTime,
+        trajectoryStartTime
+    );
+    const progress = Cesium.Math.clamp(
+        (elapsedSeconds / totalSeconds) * 100,
+        0,
+        100
+    );
+    trajectoryTimelineProgress.value = progress;
+
+    if (progress >= 100) {
+        isTrajectoryPlaying.value = false;
+    } else {
+        isTrajectoryPlaying.value = viewer.clock.shouldAnimate;
+    }
+}
+
+function startTrajectoryTimelineSync() {
+    stopTrajectoryTimelineSync();
+    updateTrajectoryTimelineProgress();
+
+    if (!viewer) {
+        return;
+    }
+
+    removeTrajectoryClockListener = viewer.clock.onTick.addEventListener(() => {
+        updateTrajectoryTimelineProgress();
+    });
+}
+
+function resetTrajectoryTimeline() {
+    stopTrajectoryTimelineSync();
+    trajectoryStartTime = null;
+    trajectoryStopTime = null;
+    trajectoryTimelineProgress.value = 0;
+    isTrajectoryTimelineVisible.value = false;
+    isTrajectoryPlaying.value = false;
+}
+
+function pauseTrajectoryPlayback() {
+    if (!viewer) {
+        return;
+    }
+
+    viewer.clock.shouldAnimate = false;
+    isTrajectoryPlaying.value = false;
+    updateTrajectoryTimelineProgress();
+}
+
+function resumeTrajectoryPlayback() {
+    if (!viewer || !trajectoryStartTime || !trajectoryStopTime) {
+        return;
+    }
+
+    if (trajectoryTimelineProgress.value >= 100) {
+        viewer.clock.currentTime = trajectoryStartTime.clone();
+        trajectoryTimelineProgress.value = 0;
+    }
+
+    viewer.clock.shouldAnimate = true;
+    isTrajectoryPlaying.value = true;
+    updateTrajectoryTimelineProgress();
+}
+
+function handleTrajectoryTimelineChange(progress: number) {
+    if (!viewer || !trajectoryStartTime || !trajectoryStopTime) {
+        return;
+    }
+
+    const normalizedProgress = Cesium.Math.clamp(progress, 0, 100);
+    const totalSeconds = Cesium.JulianDate.secondsDifference(
+        trajectoryStopTime,
+        trajectoryStartTime
+    );
+
+    viewer.clock.currentTime = Cesium.JulianDate.addSeconds(
+        trajectoryStartTime,
+        (normalizedProgress / 100) * totalSeconds,
+        new Cesium.JulianDate()
+    );
+    viewer.clock.shouldAnimate = false;
+    trajectoryTimelineProgress.value = normalizedProgress;
+    isTrajectoryPlaying.value = false;
+}
 
 function parseCsvLine(line: string) {
     const values: string[] = [];
@@ -613,6 +765,8 @@ function parseK37TrajectoryCsv(csvText: string) {
 }
 
 function clearK37Trajectories() {
+    resetTrajectoryTimeline();
+
     if (!viewer && editor?.value?.viewer) {
         viewer = editor.value.viewer;
     }
@@ -649,8 +803,8 @@ async function loadK37Trajectories() {
     }
     viewer.dataSources.raiseToTop(k37TrajectoryDataSource);
 
-    console.log(`[RoadVisual] Loading k37 trajectories: ${K37_TRAJECTORY_URL}`);
-    const res = await fetch(`${K37_TRAJECTORY_URL}?t=${Date.now()}`);
+    console.log(`[RoadVisual] Loading k37 trajectories: ${TRAJECTORY_URL}`);
+    const res = await fetch(`${TRAJECTORY_URL}?t=${Date.now()}`);
     if (!res.ok) {
         throw new Error(`Failed to fetch k37 CSV: HTTP ${res.status}`);
     }
@@ -681,7 +835,7 @@ async function loadK37Trajectories() {
     const startJD = Cesium.JulianDate.now();
     const stopJD = Cesium.JulianDate.addSeconds(
         startJD,
-        (maxFrame - minFrame) / K37_FRAME_RATE,
+        (maxFrame - minFrame) / TRAJECTORY_FRAME_RATE,
         new Cesium.JulianDate()
     );
 
@@ -695,17 +849,17 @@ async function loadK37Trajectories() {
         }> = [];
         const vehicleStartJD = Cesium.JulianDate.addSeconds(
             startJD,
-            (points[0].frame - minFrame) / K37_FRAME_RATE,
+            (points[0].frame - minFrame) / TRAJECTORY_FRAME_RATE,
             new Cesium.JulianDate()
         );
         const vehicleStopJD = Cesium.JulianDate.addSeconds(
             startJD,
-            (points[points.length - 1].frame - minFrame) / K37_FRAME_RATE,
+            (points[points.length - 1].frame - minFrame) / TRAJECTORY_FRAME_RATE,
             new Cesium.JulianDate()
         );
 
         for (const point of points) {
-            const seconds = (point.frame - minFrame) / K37_FRAME_RATE;
+            const seconds = (point.frame - minFrame) / TRAJECTORY_FRAME_RATE;
             const pointTime = Cesium.JulianDate.addSeconds(
                 startJD,
                 seconds,
@@ -714,7 +868,7 @@ async function loadK37Trajectories() {
             const position = Cesium.Cartesian3.fromDegrees(
                 point.lon,
                 point.lat,
-                K37_MODEL_HEIGHT
+                TRAJECTORY_MODEL_HEIGHT
             );
             sampled.addSample(pointTime, position);
             trackSamples.push({ seconds, position });
@@ -751,14 +905,14 @@ async function loadK37Trajectories() {
                 false
             ),
             model: {
-                uri: K37_MODEL_URL,
+                uri: TRAJECTORY_MODEL_URL,
                 heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
                 minimumPixelSize: 40,
                 maximumScale: 20
             },
             point: {
                 pixelSize: 8,
-                color: K37_TRAJECTORY_COLOR,
+                color: TRAJECTORY_COLOR,
                 outlineColor: Cesium.Color.WHITE,
                 outlineWidth: 2,
                 heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
@@ -779,7 +933,7 @@ async function loadK37Trajectories() {
                         .map((sample) => sample.position);
                 }, false),
                 width: 3,
-                material: K37_TRAJECTORY_COLOR,
+                material: TRAJECTORY_COLOR,
                 clampToGround: true,
                 zIndex: new Cesium.ConstantProperty(20000)
             },
@@ -804,6 +958,12 @@ async function loadK37Trajectories() {
     viewer.clock.clockRange = Cesium.ClockRange.CLAMPED;
     viewer.clock.multiplier = 1;
     viewer.clock.shouldAnimate = true;
+    trajectoryStartTime = startJD.clone();
+    trajectoryStopTime = stopJD.clone();
+    trajectoryTimelineProgress.value = 0;
+    isTrajectoryTimelineVisible.value = true;
+    isTrajectoryPlaying.value = true;
+    startTrajectoryTimelineSync();
     viewer.dataSources.raiseToTop(k37TrajectoryDataSource);
     if (firstTrajectoryPoint) {
         viewer.camera.flyTo({
@@ -1649,6 +1809,7 @@ defineExpose({
 }
 
 /* 交通态势时间线控制条 */
+.trajectory-timeline-control,
 .traffic-timeline-control {
     position: fixed;
     bottom: 20px;
@@ -1661,6 +1822,10 @@ defineExpose({
     z-index: 1000;
     min-width: 400px;
     max-width: 90%;
+}
+
+.trajectory-timeline-control {
+    bottom: 92px;
 }
 
 .timeline-container {
@@ -1784,10 +1949,15 @@ defineExpose({
 
 /* 响应式设计 */
 @media (max-width: 768px) {
+    .trajectory-timeline-control,
     .traffic-timeline-control {
         min-width: 320px;
         bottom: 10px;
         padding: 10px 12px;
+    }
+
+    .trajectory-timeline-control {
+        bottom: 70px;
     }
 
     .timeline-container {
@@ -1812,10 +1982,15 @@ defineExpose({
 }
 
 @media (max-width: 480px) {
+    .trajectory-timeline-control,
     .traffic-timeline-control {
         min-width: 90%;
         bottom: 10px;
         padding: 8px;
+    }
+
+    .trajectory-timeline-control {
+        bottom: 58px;
     }
 
     .timeline-container {
