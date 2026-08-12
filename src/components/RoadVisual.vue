@@ -1397,41 +1397,41 @@ type LaneConfig = {
     minimumPixelSize?: number;
 };
 
+const VIDEO_ROUTE_VIEW = Cesium.Cartesian3.fromDegrees(
+    117.42073831,
+    40.39876144,
+    628
+);
+
 const ROAD_LANES: Record<string, LaneConfig> = {
-    // 例子：你可以把不同视频/路段映射到不同的经纬度“车道”
     road_1: {
-        start: Cesium.Cartesian3.fromDegrees(117.48339, 40.445983, 587.21),
-        end: Cesium.Cartesian3.fromDegrees(117.481602, 40.443692, 591.05),
+        start: Cesium.Cartesian3.fromDegrees(117.42073831, 40.39876144, 1),
+        end: Cesium.Cartesian3.fromDegrees(117.41892631, 40.39884592, 1),
         modelUri: "/SUV_gltf/b03505c6f4f942e5ade70692a899e702.gltf",
         minimumPixelSize: 40
     },
-
-    // 例子：第二路视频/路段（请换成你的真实坐标）
     road_2: {
-        start: Cesium.Cartesian3.fromDegrees(117.481602, 40.443692, 591.05),
-        end: Cesium.Cartesian3.fromDegrees(117.478541, 40.439751, 597.61),
+        start: Cesium.Cartesian3.fromDegrees(117.42073972, 40.39879482, 1),
+        end: Cesium.Cartesian3.fromDegrees(117.41893177, 40.39888037, 1),
         modelUri: "/SUV_gltf/b03505c6f4f942e5ade70692a899e702.gltf",
         minimumPixelSize: 40
     },
-
     road_3: {
-        start: Cesium.Cartesian3.fromDegrees(117.482972, 40.4463174, 588.81),
-        end: Cesium.Cartesian3.fromDegrees(117.48119, 40.444024, 592.62),
-        modelUri: "/truckModel.glb",
+        start: Cesium.Cartesian3.fromDegrees(117.42074137, 40.39882646, 1),
+        end: Cesium.Cartesian3.fromDegrees(117.41893003, 40.39888043, 1),
+        modelUri: "/SUV_gltf/b03505c6f4f942e5ade70692a899e702.gltf",
         minimumPixelSize: 40
     },
-
-    // 单路/未设置时的兜底
     default: {
-        start: Cesium.Cartesian3.fromDegrees(117.48339, 40.445983, 587.21),
-        end: Cesium.Cartesian3.fromDegrees(117.481602, 40.443692, 591.05),
+        start: Cesium.Cartesian3.fromDegrees(117.42073831, 40.39876144, 1),
+        end: Cesium.Cartesian3.fromDegrees(117.41892631, 40.39884592, 1),
         modelUri: "/SUV_gltf/b03505c6f4f942e5ade70692a899e702.gltf",
         minimumPixelSize: 40
     }
 };
 
 function spawnRealtimeVehicle(
-    videoId: string,
+    videoId: string = "default",
     type: string = "car",
     lifeSeconds = 45
 ) {
@@ -1504,8 +1504,9 @@ function spawnRealtimeVehicle(
                     false
                 ),
                 model: {
-                    uri: "/SUV_gltf/b03505c6f4f942e5ade70692a899e702.gltf",
-                    minimumPixelSize: 40
+                    uri: lane.modelUri,
+                    minimumPixelSize: lane.minimumPixelSize,
+                    heightReference: Cesium.HeightReference.RELATIVE_TO_GROUND
                 }
             });
         } else if (type === "truck") {
@@ -1518,7 +1519,8 @@ function spawnRealtimeVehicle(
                 orientation: velOri,
                 model: {
                     uri: "/truckModel.glb",
-                    minimumPixelSize: 40
+                    minimumPixelSize: 40,
+                    heightReference: Cesium.HeightReference.RELATIVE_TO_GROUND
                 }
             });
         } else {
@@ -1710,11 +1712,7 @@ function flyToInitView() {
     if (editor?.value?.viewer) {
         viewer = editor.value.viewer;
         viewer.camera.flyTo({
-            destination: Cesium.Cartesian3.fromDegrees(
-                117.48463609349766, // lon 117.484233
-                40.44651364265419, // lat
-                628 // height
-            ),
+            destination: VIDEO_ROUTE_VIEW,
             duration: 1.5
         });
     }
@@ -1772,11 +1770,7 @@ function videoVehicle() {
         connectVehicleSocket();
 
         viewer.entities.add({
-            position: Cesium.Cartesian3.fromDegrees(
-                117.48463609349766,
-                40.44651364265419,
-                628
-            ),
+            position: VIDEO_ROUTE_VIEW,
             point: { pixelSize: 6, color: Cesium.Color.RED },
             label: { text: "VIEWER READY" }
         });
