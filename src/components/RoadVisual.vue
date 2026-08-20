@@ -92,6 +92,7 @@ import * as Cesium from "cesium";
 import { useGeoOasisStore } from "../store/GeoOasis.store";
 import { storeToRefs } from "pinia";
 import { nanoid } from "nanoid";
+import { ElMessage } from "element-plus";
 
 const store = useGeoOasisStore();
 const { editor, isTrafficAnalysis } = storeToRefs(store);
@@ -563,11 +564,14 @@ const vehicleEntities: Cesium.Entity[] = [];
 const k37TrajectoryEntities: Cesium.Entity[] = [];
 let k37TrajectoryDataSource: Cesium.CustomDataSource | null = null;
 const TRAJECTORY_URL =
-    "/data/cpgs84/Trajectory/k38_full_single_run.csv";
+    "/data/cpgs84/Trajectory/k38_full_single_run_with_ModelHeight.csv";
 const TRAJECTORY_MODEL_URL = "/SUV_gltf/b03505c6f4f942e5ade70692a899e702.gltf";
+const TRAJECTORY_HEIGHT_TILESET_PATH = "/3dtiles/wgs84/tileset.json";
 const TRAJECTORY_FRAME_RATE = 25;  //假定帧率
 const TRAJECTORY_MODEL_HEIGHT = 0;
+const TRAJECTORY_MODEL_HEIGHT_OFFSET = 0.1;
 const TRAJECTORY_COLOR = Cesium.Color.CYAN.withAlpha(0.95);
+const TRAJECTORY_HEIGHT_BATCH_SIZE = 500;
 let isK37TrajectoriesLoaded = false;
 let isLoadingK37Trajectories = false;
 
@@ -576,6 +580,15 @@ type K37TrajectoryPoint = {
     frame: number;
     lon: number;
     lat: number;
+    rowIndex: number;
+    modelHeight?: number;
+};
+
+type ParsedK37TrajectoryCsv = {
+    headers: string[];
+    rows: string[][];
+    groups: Map<string, K37TrajectoryPoint[]>;
+    modelHeightIndex: number;
 };
 
 function stopTrajectoryTimelineSync() {
@@ -712,14 +725,24 @@ function parseCsvLine(line: string) {
     return values;
 }
 
-function parseK37TrajectoryCsv(csvText: string) {
-    const lines = csvText.split(/\r?\n/).filter((line) => line.trim());
+function parseK37TrajectoryCsv(csvText: string): ParsedK37TrajectoryCsv {
+    const lines = csvText
+        .replace(/^\uFEFF/, "")
+        .split(/\r?\n/)
+        .filter((line) => line.trim());
     if (lines.length < 2) {
-        return new Map<string, K37TrajectoryPoint[]>();
+        return {
+            headers: [],
+            rows: [],
+            groups: new Map<string, K37TrajectoryPoint[]>(),
+            modelHeightIndex: -1
+        };
     }
 
     const headers = parseCsvLine(lines[0]).map((header) => header.trim());
-    const columnIndex = new Map(headers.map((header, index) => [header, index]));
+    const columnIndex = new Map(
+        headers.map((header, index) => [header, index])
+    );
     const requiredColumns = ["frame", "track_id", "longitude", "latitude"];
 
     for (const column of requiredColumns) {
@@ -732,14 +755,22 @@ function parseK37TrajectoryCsv(csvText: string) {
     const trackIndex = columnIndex.get("track_id")!;
     const lonIndex = columnIndex.get("longitude")!;
     const latIndex = columnIndex.get("latitude")!;
+    const modelHeightIndex = columnIndex.get("ModelHeight") ?? -1;
     const groups = new Map<string, K37TrajectoryPoint[]>();
+    const rows = lines.slice(1).map((line) => parseCsvLine(line));
 
-    for (const line of lines.slice(1)) {
-        const values = parseCsvLine(line);
+    for (const [rowIndex, values] of rows.entries()) {
         const frame = Number(values[frameIndex]);
         const trackId = values[trackIndex]?.trim();
         const lon = Number(values[lonIndex]);
         const lat = Number(values[latIndex]);
+        const modelHeightText =
+            modelHeightIndex >= 0
+                ? values[modelHeightIndex]?.trim()
+                : undefined;
+        const modelHeight = modelHeightText
+            ? Number(modelHeightText)
+            : undefined;
 
         if (
             !trackId ||
@@ -754,14 +785,163 @@ function parseK37TrajectoryCsv(csvText: string) {
             groups.set(trackId, []);
         }
 
-        groups.get(trackId)!.push({ trackId, frame, lon, lat });
+        groups.get(trackId)!.push({
+            trackId,
+            frame,
+            lon,
+            lat,
+            rowIndex,
+            modelHeight: Number.isFinite(modelHeight) ? modelHeight : undefined
+        });
     }
 
     for (const points of groups.values()) {
         points.sort((a, b) => a.frame - b.frame);
     }
 
-    return groups;
+    return { headers, rows, groups, modelHeightIndex };
+}
+
+function normalizeResourcePath(resourceUrl: string) {
+    try {
+        return decodeURIComponent(
+            new URL(resourceUrl, window.location.href).pathname
+        )
+            .replace(/\\/g, "/")
+            .toLowerCase();
+    } catch {
+        return resourceUrl.replace(/\\/g, "/").toLowerCase();
+    }
+}
+
+function findTrajectoryHeightTileset() {
+    if (!viewer) {
+        return undefined;
+    }
+
+    const primitives = viewer.scene.primitives;
+    for (let index = 0; index < primitives.length; index++) {
+        const primitive = primitives.get(index);
+        if (
+            primitive instanceof Cesium.Cesium3DTileset &&
+            normalizeResourcePath(primitive.resource.url) ===
+                TRAJECTORY_HEIGHT_TILESET_PATH
+        ) {
+            return primitive;
+        }
+    }
+
+    return undefined;
+}
+
+function escapeCsvField(value: string) {
+    if (/[",\r\n]/.test(value)) {
+        return `"${value.replace(/"/g, '""')}"`;
+    }
+    return value;
+}
+
+function downloadTrajectoryCsv(
+    parsedCsv: ParsedK37TrajectoryCsv,
+    heightsByRow: Map<number, number>
+) {
+    const headers = [...parsedCsv.headers, "ModelHeight"];
+    const rows = parsedCsv.rows.map((sourceRow, rowIndex) => {
+        const row = [...sourceRow];
+        while (row.length < parsedCsv.headers.length) {
+            row.push("");
+        }
+        row.push(
+            heightsByRow.has(rowIndex)
+                ? heightsByRow.get(rowIndex)!.toFixed(3)
+                : ""
+        );
+        return row;
+    });
+    const csv = [headers, ...rows]
+        .map((row) => row.map(escapeCsvField).join(","))
+        .join("\r\n");
+    const sourceName = TRAJECTORY_URL.split("/").pop() ?? "trajectory.csv";
+    const downloadName = sourceName.replace(/\.csv$/i, "_with_ModelHeight.csv");
+    const blobUrl = URL.createObjectURL(
+        new Blob(["\uFEFF", csv], { type: "text/csv;charset=utf-8" })
+    );
+    const anchor = document.createElement("a");
+    anchor.href = blobUrl;
+    anchor.download = downloadName;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    window.setTimeout(() => URL.revokeObjectURL(blobUrl), 0);
+}
+
+async function calculateAndDownloadModelHeights(
+    parsedCsv: ParsedK37TrajectoryCsv,
+    targetTileset: Cesium.Cesium3DTileset
+) {
+    if (!viewer?.scene.sampleHeightSupported) {
+        throw new Error("当前浏览器不支持三维场景高度采样");
+    }
+
+    const points = Array.from(parsedCsv.groups.values()).flat();
+    const heightsByRow = new Map<number, number>();
+    const objectsToExclude: object[] = [];
+    const primitives = viewer.scene.primitives;
+    for (let index = 0; index < primitives.length; index++) {
+        const primitive = primitives.get(index);
+        if (primitive !== targetTileset) {
+            objectsToExclude.push(primitive);
+        }
+    }
+
+    const originalGlobeShow = viewer.scene.globe.show;
+    const originalTilesetShow = targetTileset.show;
+    viewer.scene.globe.show = false;
+    targetTileset.show = true;
+
+    try {
+        for (
+            let start = 0;
+            start < points.length;
+            start += TRAJECTORY_HEIGHT_BATCH_SIZE
+        ) {
+            const batchPoints = points.slice(
+                start,
+                start + TRAJECTORY_HEIGHT_BATCH_SIZE
+            );
+            const positions = batchPoints.map((point) =>
+                Cesium.Cartographic.fromDegrees(point.lon, point.lat)
+            );
+            const sampledPositions =
+                await viewer.scene.sampleHeightMostDetailed(
+                    positions,
+                    objectsToExclude
+                );
+
+            sampledPositions.forEach((position, index) => {
+                if (position && Number.isFinite(position.height)) {
+                    heightsByRow.set(
+                        batchPoints[index].rowIndex,
+                        position.height
+                    );
+                }
+            });
+
+            await new Promise<void>((resolve) => window.setTimeout(resolve, 0));
+        }
+    } finally {
+        viewer.scene.globe.show = originalGlobeShow;
+        targetTileset.show = originalTilesetShow;
+    }
+
+    const missingCount = points.length - heightsByRow.size;
+    if (missingCount > 0) {
+        throw new Error(
+            `有 ${missingCount} 个轨迹点未能从指定道路模型获取高度，未生成 CSV`
+        );
+    }
+
+    downloadTrajectoryCsv(parsedCsv, heightsByRow);
 }
 
 function clearK37Trajectories() {
@@ -810,11 +990,47 @@ async function loadK37Trajectories() {
     }
 
     const csvText = await res.text();
-    const groups = parseK37TrajectoryCsv(csvText);
+    const parsedCsv = parseK37TrajectoryCsv(csvText);
+    const groups = parsedCsv.groups;
 
     if (groups.size === 0) {
         console.warn("[RoadVisual] No valid k37 trajectory points");
         return;
+    }
+
+    const trajectoryHeightTileset = findTrajectoryHeightTileset();
+    if (trajectoryHeightTileset && parsedCsv.modelHeightIndex < 0) {
+        const loadingMessage = ElMessage({
+            message: "正在根据道路三维模型计算轨迹高度，请稍候…",
+            type: "info",
+            duration: 0
+        });
+        try {
+            await calculateAndDownloadModelHeights(
+                parsedCsv,
+                trajectoryHeightTileset
+            );
+            ElMessage.success(
+                "已下载包含 ModelHeight 的 CSV，请人工替换原文件后再次点击轨迹数据映射"
+            );
+        } finally {
+            loadingMessage.close();
+        }
+        return;
+    }
+
+    const useModelHeight = Boolean(
+        trajectoryHeightTileset && parsedCsv.modelHeightIndex >= 0
+    );
+    if (useModelHeight) {
+        const invalidPoint = Array.from(groups.values())
+            .flat()
+            .find((point) => !Number.isFinite(point.modelHeight));
+        if (invalidPoint) {
+            throw new Error(
+                `CSV 第 ${invalidPoint.rowIndex + 2} 行的 ModelHeight 无效`
+            );
+        }
     }
 
     let minFrame = Number.POSITIVE_INFINITY;
@@ -868,7 +1084,9 @@ async function loadK37Trajectories() {
             const position = Cesium.Cartesian3.fromDegrees(
                 point.lon,
                 point.lat,
-                TRAJECTORY_MODEL_HEIGHT
+                useModelHeight
+                    ? point.modelHeight! + TRAJECTORY_MODEL_HEIGHT_OFFSET
+                    : TRAJECTORY_MODEL_HEIGHT
             );
             sampled.addSample(pointTime, position);
             trackSamples.push({ seconds, position });
@@ -906,7 +1124,9 @@ async function loadK37Trajectories() {
             ),
             model: {
                 uri: TRAJECTORY_MODEL_URL,
-                heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+                heightReference: useModelHeight
+                    ? Cesium.HeightReference.NONE
+                    : Cesium.HeightReference.CLAMP_TO_GROUND,
                 minimumPixelSize: 40,
                 maximumScale: 20
             },
@@ -915,7 +1135,9 @@ async function loadK37Trajectories() {
                 color: TRAJECTORY_COLOR,
                 outlineColor: Cesium.Color.WHITE,
                 outlineWidth: 2,
-                heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+                heightReference: useModelHeight
+                    ? Cesium.HeightReference.NONE
+                    : Cesium.HeightReference.CLAMP_TO_GROUND,
                 disableDepthTestDistance: Number.POSITIVE_INFINITY
             },
             polyline: {
@@ -934,7 +1156,7 @@ async function loadK37Trajectories() {
                 }, false),
                 width: 3,
                 material: TRAJECTORY_COLOR,
-                clampToGround: true,
+                clampToGround: !useModelHeight,
                 zIndex: new Cesium.ConstantProperty(20000)
             },
             label: {
@@ -943,7 +1165,9 @@ async function loadK37Trajectories() {
                 fillColor: Cesium.Color.WHITE,
                 style: Cesium.LabelStyle.FILL_AND_OUTLINE,
                 outlineWidth: 2,
-                heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+                heightReference: useModelHeight
+                    ? Cesium.HeightReference.NONE
+                    : Cesium.HeightReference.CLAMP_TO_GROUND,
                 disableDepthTestDistance: Number.POSITIVE_INFINITY,
                 pixelOffset: new Cesium.Cartesian2(0, -30)
             }
@@ -997,6 +1221,9 @@ async function toggleK37Trajectories() {
         await loadK37Trajectories();
     } catch (err) {
         console.error("[RoadVisual] Failed to load k37 trajectories:", err);
+        ElMessage.error(
+            err instanceof Error ? err.message : "轨迹数据映射失败"
+        );
         clearK37Trajectories();
     } finally {
         isLoadingK37Trajectories = false;
