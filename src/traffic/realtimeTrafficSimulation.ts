@@ -10,6 +10,14 @@ const ROUTE_SAMPLE_SPACING_METERS = 3;
 const VEHICLE_SAMPLE_INTERVAL_SECONDS = 0.2;
 const COLLISION_CHECK_INTERVAL_SECONDS = 0.1;
 const BENCHMARK_TIME_SECONDS = 10;
+const LOWER_DECK_RAY_STEP_METERS = 0.5;
+const LOWER_DECK_MAX_DEPTH_METERS = 25;
+const LOWER_DECK_MAX_RAY_HITS = 4;
+const LOWER_DECK_SURFACE_CLUSTER_METERS = 2;
+const LOWER_DECK_RAY_BATCH_SIZE = 16;
+const CONNECTOR_MAX_GRADE = 0.3;
+const CONNECTOR_SPIKE_MAX_SEGMENTS = 2;
+const CONNECTOR_SPIKE_BLEND_POINTS = 2;
 
 type LonLat = [number, number];
 
@@ -26,6 +34,11 @@ type RoutePoint = {
     longitude: number;
     latitude: number;
     height?: number;
+    heightCandidates?: number[];
+    heightSource?:
+        | "sample-height"
+        | "lower-deck-ray"
+        | "lower-deck-interpolated";
     distance: number;
 };
 
@@ -37,6 +50,7 @@ type SourceSegment = {
 type RouteGeometry = {
     id: string;
     routeType: "mainline" | "connector";
+    elevationMode: "surface" | "prefer-lower-continuous";
     sourceSegments: SourceSegment[];
     points: RoutePoint[];
 };
@@ -46,6 +60,10 @@ export type RealtimeTrafficSample = {
     longitude: number;
     latitude: number;
     height: number;
+    heightSource?:
+        | "sample-height"
+        | "lower-deck-ray"
+        | "lower-deck-interpolated";
 };
 
 export type RealtimeTrafficVehicle = {
@@ -60,7 +78,7 @@ export type RealtimeTrafficVehicle = {
 };
 
 export type RealtimeTrafficData = {
-    version: 1;
+    version: 2;
     coordinateSystem: "EPSG:4326";
     generatedAt: string;
     sourceTileset: string;
@@ -83,6 +101,8 @@ export type RealtimeTrafficData = {
         peakVehicles: number;
         collisionCount: number;
         routesWithSampledHeight: number;
+        lowerDeckAdjustedRoutePoints: number;
+        maxConnectorGradePercent: number;
     };
     vehicles: RealtimeTrafficVehicle[];
 };
@@ -163,7 +183,16 @@ function resampleLine(coordinates: LonLat[], spacingMeters: number) {
 }
 
 function withDistances(
-    coordinates: Array<{ longitude: number; latitude: number; height?: number }>
+    coordinates: Array<{
+        longitude: number;
+        latitude: number;
+        height?: number;
+        heightCandidates?: number[];
+        heightSource?:
+            | "sample-height"
+            | "lower-deck-ray"
+            | "lower-deck-interpolated";
+    }>
 ) {
     let distance = 0;
     return coordinates.map((point, index) => {
@@ -252,6 +281,7 @@ export function buildRealtimeTrafficRoutes(
         routes.push({
             id: definition.id,
             routeType: "mainline",
+            elevationMode: "surface",
             sourceSegments: definition.records.map((recordNumber) => ({
                 source: "LaneCenterline",
                 recordNumber
@@ -273,6 +303,7 @@ export function buildRealtimeTrafficRoutes(
         routes.push({
             id: definition.id,
             routeType: "connector",
+            elevationMode: "prefer-lower-continuous",
             sourceSegments: definition.records.map((recordNumber) => ({
                 source: "RoadCenterLine",
                 recordNumber
@@ -391,6 +422,352 @@ function longestValidHeightRun(points: RoutePoint[]) {
     );
 }
 
+type MostDetailedRayPickResult = {
+    position?: Cesium.Cartesian3;
+};
+
+type SceneWithMostDetailedRayPick = Cesium.Scene & {
+    pickFromRayMostDetailed: (
+        ray: Cesium.Ray,
+        objectsToExclude?: object[],
+        width?: number
+    ) => Promise<MostDetailedRayPickResult | undefined>;
+};
+
+function clusterSurfaceHeights(heights: number[]) {
+    const sorted = [...heights].sort((a, b) => b - a);
+    const clusters: number[] = [];
+    for (const height of sorted) {
+        const previous = clusters.at(-1);
+        if (
+            previous === undefined ||
+            previous - height > LOWER_DECK_SURFACE_CLUSTER_METERS
+        ) {
+            clusters.push(height);
+        }
+    }
+    return clusters;
+}
+
+async function collectSurfaceHeightCandidates(
+    viewer: Cesium.Viewer,
+    point: RoutePoint,
+    objectsToExclude: object[]
+) {
+    const normalHeight = point.height;
+    if (!Number.isFinite(normalHeight)) return [];
+
+    const scene = viewer.scene as SceneWithMostDetailedRayPick;
+    if (typeof scene.pickFromRayMostDetailed !== "function") {
+        throw new Error("当前Cesium版本不支持下层道路射线拾取");
+    }
+
+    const ellipsoid = viewer.scene.globe.ellipsoid;
+    let origin = Cesium.Cartesian3.fromDegrees(
+        point.longitude,
+        point.latitude,
+        normalHeight! - LOWER_DECK_RAY_STEP_METERS
+    );
+    const surfaceNormal = ellipsoid.geodeticSurfaceNormal(
+        origin,
+        new Cesium.Cartesian3()
+    );
+    const direction = Cesium.Cartesian3.negate(
+        surfaceNormal,
+        new Cesium.Cartesian3()
+    );
+    const heights = [normalHeight!];
+
+    for (let hitIndex = 0; hitIndex < LOWER_DECK_MAX_RAY_HITS; hitIndex++) {
+        const result = await scene.pickFromRayMostDetailed(
+            new Cesium.Ray(origin, direction),
+            objectsToExclude,
+            0.25
+        );
+        if (!result?.position) break;
+
+        const cartographic = Cesium.Cartographic.fromCartesian(
+            result.position,
+            ellipsoid
+        );
+        if (!cartographic || !Number.isFinite(cartographic.height)) break;
+        if (normalHeight! - cartographic.height > LOWER_DECK_MAX_DEPTH_METERS) {
+            break;
+        }
+        heights.push(cartographic.height);
+        origin = Cesium.Cartesian3.add(
+            result.position,
+            Cesium.Cartesian3.multiplyByScalar(
+                direction,
+                LOWER_DECK_RAY_STEP_METERS,
+                new Cesium.Cartesian3()
+            ),
+            new Cesium.Cartesian3()
+        );
+    }
+
+    return clusterSurfaceHeights(heights);
+}
+
+function fillSmallLowerDeckCandidateGaps(route: RouteGeometry) {
+    for (let index = 1; index < route.points.length - 1; index++) {
+        if ((route.points[index].heightCandidates?.length ?? 0) > 1) continue;
+
+        let end = index;
+        while (
+            end < route.points.length &&
+            (route.points[end].heightCandidates?.length ?? 0) <= 1
+        ) {
+            end++;
+        }
+        const gapLength = end - index;
+        const before = route.points[index - 1].heightCandidates;
+        const after = route.points[end]?.heightCandidates;
+        if (
+            gapLength <= 2 &&
+            before &&
+            before.length > 1 &&
+            after &&
+            after.length > 1
+        ) {
+            for (let offset = 0; offset < gapLength; offset++) {
+                const point = route.points[index + offset];
+                const lowerHeight = Cesium.Math.lerp(
+                    before[1],
+                    after![1],
+                    (offset + 1) / (gapLength + 1)
+                );
+                point.heightCandidates = [point.height!, lowerHeight];
+            }
+        }
+        index = end - 1;
+    }
+}
+
+async function sampleLowerDeckCandidates(
+    viewer: Cesium.Viewer,
+    routes: RouteGeometry[],
+    objectsToExclude: object[],
+    onProgress: GenerationProgress
+) {
+    const connectorPoints = routes
+        .filter((route) => route.elevationMode === "prefer-lower-continuous")
+        .flatMap((route) => route.points);
+
+    for (
+        let start = 0;
+        start < connectorPoints.length;
+        start += LOWER_DECK_RAY_BATCH_SIZE
+    ) {
+        const batch = connectorPoints.slice(
+            start,
+            start + LOWER_DECK_RAY_BATCH_SIZE
+        );
+        const candidates = await Promise.all(
+            batch.map((point) =>
+                collectSurfaceHeightCandidates(viewer, point, objectsToExclude)
+            )
+        );
+        candidates.forEach((heights, index) => {
+            batch[index].heightCandidates = heights.length
+                ? heights
+                : [batch[index].height!];
+        });
+        onProgress(
+            `下层道路多表面采样 ${Math.min(
+                start + batch.length,
+                connectorPoints.length
+            )}/${connectorPoints.length}`
+        );
+        await new Promise<void>((resolve) => window.setTimeout(resolve, 0));
+    }
+
+    routes
+        .filter((route) => route.elevationMode === "prefer-lower-continuous")
+        .forEach(fillSmallLowerDeckCandidateGaps);
+}
+
+function selectContinuousLowerDeckHeights(route: RouteGeometry) {
+    const candidateSets = route.points.map((point) =>
+        point.heightCandidates?.length
+            ? point.heightCandidates
+            : [point.height!]
+    );
+    const costs: number[][] = [];
+    const previousIndexes: number[][] = [];
+
+    for (let pointIndex = 0; pointIndex < route.points.length; pointIndex++) {
+        const candidates = candidateSets[pointIndex];
+        costs[pointIndex] = candidates.map(() => Number.POSITIVE_INFINITY);
+        previousIndexes[pointIndex] = candidates.map(() => -1);
+
+        for (
+            let candidateIndex = 0;
+            candidateIndex < candidates.length;
+            candidateIndex++
+        ) {
+            const layerPenalty =
+                candidates.length <= 1
+                    ? 0
+                    : candidateIndex === 1
+                      ? 0
+                      : candidateIndex === 0
+                        ? 8
+                        : 20 + candidateIndex * 5;
+            if (pointIndex === 0) {
+                costs[pointIndex][candidateIndex] = layerPenalty;
+                continue;
+            }
+
+            const segmentLength = Math.max(
+                route.points[pointIndex].distance -
+                    route.points[pointIndex - 1].distance,
+                0.5
+            );
+            const previousCandidates = candidateSets[pointIndex - 1];
+            for (
+                let previousIndex = 0;
+                previousIndex < previousCandidates.length;
+                previousIndex++
+            ) {
+                const grade =
+                    Math.abs(
+                        candidates[candidateIndex] -
+                            previousCandidates[previousIndex]
+                    ) / segmentLength;
+                const excessiveGradePenalty =
+                    grade > 0.25 ? 10_000 * (grade - 0.25) ** 2 : 0;
+                const transitionCost =
+                    costs[pointIndex - 1][previousIndex] +
+                    grade ** 2 * 200 +
+                    excessiveGradePenalty +
+                    layerPenalty;
+                if (transitionCost < costs[pointIndex][candidateIndex]) {
+                    costs[pointIndex][candidateIndex] = transitionCost;
+                    previousIndexes[pointIndex][candidateIndex] = previousIndex;
+                }
+            }
+        }
+    }
+
+    let selectedIndex = costs
+        .at(-1)!
+        .reduce(
+            (best, cost, index, all) => (cost < all[best] ? index : best),
+            0
+        );
+    for (
+        let pointIndex = route.points.length - 1;
+        pointIndex >= 0;
+        pointIndex--
+    ) {
+        const point = route.points[pointIndex];
+        const selectedHeight = candidateSets[pointIndex][selectedIndex];
+        if (Math.abs(selectedHeight - point.height!) > 0.5) {
+            point.height = selectedHeight;
+            point.heightSource = "lower-deck-ray";
+        } else {
+            point.heightSource = "sample-height";
+        }
+        selectedIndex = previousIndexes[pointIndex][selectedIndex];
+        if (pointIndex > 0 && selectedIndex < 0) {
+            throw new Error(`${route.id} 的下层道路高程路径无法连续回溯`);
+        }
+    }
+}
+
+function repairShortConnectorHeightSpikes(route: RouteGeometry) {
+    const steepSegments: number[] = [];
+    for (let index = 1; index < route.points.length; index++) {
+        const distance = Math.max(
+            route.points[index].distance - route.points[index - 1].distance,
+            0.5
+        );
+        const grade =
+            Math.abs(
+                route.points[index].height! - route.points[index - 1].height!
+            ) / distance;
+        if (grade > CONNECTOR_MAX_GRADE) steepSegments.push(index);
+    }
+
+    const runs: number[][] = [];
+    for (const segmentIndex of steepSegments) {
+        const lastRun = runs.at(-1);
+        if (lastRun && segmentIndex === lastRun[lastRun.length - 1] + 1) {
+            lastRun.push(segmentIndex);
+        } else {
+            runs.push([segmentIndex]);
+        }
+    }
+
+    let repairedPoints = 0;
+    for (const run of runs) {
+        if (run.length > CONNECTOR_SPIKE_MAX_SEGMENTS) continue;
+
+        const startIndex = Math.max(0, run[0] - CONNECTOR_SPIKE_BLEND_POINTS);
+        const endIndex = Math.min(
+            route.points.length - 1,
+            run[run.length - 1] + CONNECTOR_SPIKE_BLEND_POINTS
+        );
+        const start = route.points[startIndex];
+        const end = route.points[endIndex];
+        const span = end.distance - start.distance;
+        if (span <= 0) continue;
+
+        for (let index = startIndex + 1; index < endIndex; index++) {
+            const point = route.points[index];
+            const ratio = (point.distance - start.distance) / span;
+            point.height = Cesium.Math.lerp(start.height!, end.height!, ratio);
+            point.heightSource = "lower-deck-interpolated";
+            repairedPoints++;
+        }
+    }
+    return repairedPoints;
+}
+
+function getConnectorHeightValidation(routes: RouteGeometry[]) {
+    let adjustedPoints = 0;
+    let maxGrade = 0;
+    let maxGradeRouteId = "";
+    for (const route of routes.filter(
+        (item) => item.routeType === "connector"
+    )) {
+        adjustedPoints += route.points.filter(
+            (point) => point.heightSource !== "sample-height"
+        ).length;
+        for (let index = 1; index < route.points.length; index++) {
+            const distance = Math.max(
+                route.points[index].distance - route.points[index - 1].distance,
+                0.5
+            );
+            const grade =
+                Math.abs(
+                    route.points[index].height! -
+                        route.points[index - 1].height!
+                ) / distance;
+            if (grade > maxGrade) {
+                maxGrade = grade;
+                maxGradeRouteId = route.id;
+            }
+        }
+    }
+
+    if (adjustedPoints === 0) {
+        throw new Error("未识别到任何下层道路高度，请检查双层道路射线拾取结果");
+    }
+    if (maxGrade > CONNECTOR_MAX_GRADE) {
+        throw new Error(
+            `${maxGradeRouteId} 的下层道路修正后最大纵坡仍达到 ${(
+                maxGrade * 100
+            ).toFixed(1)}%，已停止生成JSON`
+        );
+    }
+    return {
+        lowerDeckAdjustedRoutePoints: adjustedPoints,
+        maxConnectorGradePercent: Number((maxGrade * 100).toFixed(2))
+    };
+}
+
 async function sampleRouteHeights(
     viewer: Cesium.Viewer,
     tileset: Cesium.Cesium3DTileset,
@@ -415,6 +792,12 @@ async function sampleRouteHeights(
     viewer.scene.globe.show = false;
     tileset.show = true;
 
+    let lowerDeckValidation:
+        | {
+              lowerDeckAdjustedRoutePoints: number;
+              maxConnectorGradePercent: number;
+          }
+        | undefined;
     try {
         for (let start = 0; start < flatPoints.length; start += 500) {
             const batch = flatPoints.slice(start, start + 500);
@@ -435,28 +818,49 @@ async function sampleRouteHeights(
             );
             await new Promise<void>((resolve) => window.setTimeout(resolve, 0));
         }
+
+        const invalidRoutes: string[] = [];
+        for (const route of routes) {
+            fillSmallHeightGaps(route.points);
+            route.points = longestValidHeightRun(route.points);
+            const routeLength = route.points.at(-1)?.distance ?? 0;
+            if (route.points.length < 2 || routeLength < 30) {
+                invalidRoutes.push(route.id);
+            }
+        }
+
+        if (invalidRoutes.length > 0) {
+            throw new Error(
+                `以下路线未能从道路模型取得至少30米连续高度：${invalidRoutes.join(
+                    "、"
+                )}`
+            );
+        }
+
+        await sampleLowerDeckCandidates(
+            viewer,
+            routes,
+            excludedObjects,
+            onProgress
+        );
+        routes
+            .filter(
+                (route) => route.elevationMode === "prefer-lower-continuous"
+            )
+            .forEach((route) => {
+                selectContinuousLowerDeckHeights(route);
+                repairShortConnectorHeightSpikes(route);
+            });
+        lowerDeckValidation = getConnectorHeightValidation(routes);
     } finally {
         viewer.scene.globe.show = originalGlobeShow;
         tileset.show = originalTilesetShow;
     }
 
-    const invalidRoutes: string[] = [];
-    for (const route of routes) {
-        fillSmallHeightGaps(route.points);
-        route.points = longestValidHeightRun(route.points);
-        const routeLength = route.points.at(-1)?.distance ?? 0;
-        if (route.points.length < 2 || routeLength < 30) {
-            invalidRoutes.push(route.id);
-        }
+    if (!lowerDeckValidation) {
+        throw new Error("下层道路高度校验未完成");
     }
-
-    if (invalidRoutes.length > 0) {
-        throw new Error(
-            `以下路线未能从道路模型取得至少30米连续高度：${invalidRoutes.join(
-                "、"
-            )}`
-        );
-    }
+    return lowerDeckValidation;
 }
 
 function sampleRouteAtDistance(route: RouteGeometry, distance: number) {
@@ -482,7 +886,15 @@ function sampleRouteAtDistance(route: RouteGeometry, distance: number) {
     return {
         longitude: Cesium.Math.lerp(start.longitude, end.longitude, ratio),
         latitude: Cesium.Math.lerp(start.latitude, end.latitude, ratio),
-        height: Cesium.Math.lerp(start.height!, end.height!, ratio)
+        height: Cesium.Math.lerp(start.height!, end.height!, ratio),
+        heightSource:
+            start.heightSource === "lower-deck-interpolated" ||
+            end.heightSource === "lower-deck-interpolated"
+                ? ("lower-deck-interpolated" as const)
+                : start.heightSource === "lower-deck-ray" ||
+                    end.heightSource === "lower-deck-ray"
+                  ? ("lower-deck-ray" as const)
+                  : ("sample-height" as const)
     };
 }
 
@@ -493,7 +905,8 @@ function reverseRoute(route: RouteGeometry): RouteGeometry {
             [...route.points].reverse().map((point) => ({
                 longitude: point.longitude,
                 latitude: point.latitude,
-                height: point.height
+                height: point.height,
+                heightSource: point.heightSource
             }))
         )
     };
@@ -522,7 +935,8 @@ function createVehicle(
             time: Number((startTime + elapsed).toFixed(3)),
             longitude: point.longitude,
             latitude: point.latitude,
-            height: point.height
+            height: point.height,
+            heightSource: point.heightSource
         });
     }
 
@@ -532,7 +946,8 @@ function createVehicle(
         time: endTime,
         longitude: finalPoint.longitude,
         latitude: finalPoint.latitude,
-        height: finalPoint.height
+        height: finalPoint.height,
+        heightSource: finalPoint.heightSource
     });
 
     return {
@@ -812,7 +1227,12 @@ async function generateTrafficData(
     ]);
     const routes = buildRealtimeTrafficRoutes(laneCollection, roadCollection);
     onProgress(`已生成 ${routes.length} 条路线，准备采样道路高度`);
-    await sampleRouteHeights(viewer, tileset, routes, onProgress);
+    const lowerDeckValidation = await sampleRouteHeights(
+        viewer,
+        tileset,
+        routes,
+        onProgress
+    );
     onProgress("正在调度30辆车并检查重叠");
     const vehicles = scheduleRealtimeTrafficVehicles(routes);
     const validation = validateRealtimeTrafficVehicles(vehicles);
@@ -821,7 +1241,7 @@ async function generateTrafficData(
     );
 
     return {
-        version: 1,
+        version: 2,
         coordinateSystem: "EPSG:4326",
         generatedAt: new Date().toISOString(),
         sourceTileset: TILESET_URL,
@@ -842,7 +1262,8 @@ async function generateTrafficData(
         },
         validation: {
             ...validation,
-            routesWithSampledHeight: routes.length
+            routesWithSampledHeight: routes.length,
+            ...lowerDeckValidation
         },
         vehicles
     } satisfies RealtimeTrafficData;
@@ -858,7 +1279,8 @@ async function tryLoadTrafficData() {
     }
     const text = await response.text();
     try {
-        return JSON.parse(text) as RealtimeTrafficData;
+        const data = JSON.parse(text) as Partial<RealtimeTrafficData>;
+        return data.version === 2 ? (data as RealtimeTrafficData) : undefined;
     } catch {
         if (text.trimStart().startsWith("<")) return undefined;
         throw new Error("实时交通JSON格式错误");
