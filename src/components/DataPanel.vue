@@ -39,6 +39,15 @@ import Button from "./internals/Button.vue";
                 交通态势预测
             </Button>
         </div>
+        <div class="action-row">
+            <Button
+                class="action-btn"
+                @click="$emit('toggle-realtime-traffic')"
+            >
+                <Icon icon="material-symbols:traffic" />
+                实时交通模拟
+            </Button>
+        </div>
     </div>
 </template>
 

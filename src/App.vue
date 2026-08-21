@@ -59,6 +59,9 @@ async function runMerge() {
 function toggleTrafficAnalysis() {
     store.isTrafficAnalysis = !store.isTrafficAnalysis;
 }
+function toggleRealtimeTraffic() {
+    roadVisualRef.value?.toggleRealtimeTraffic();
+}
 </script>
 
 <template>
@@ -77,6 +80,7 @@ function toggleTrafficAnalysis() {
                 @run-merge="runMerge"
                 @load-video-vehicle="videoVehicle"
                 @toggle-traffic-analysis="toggleTrafficAnalysis"
+                @toggle-realtime-traffic="toggleRealtimeTraffic"
             />
             <InfoPanel />
             <RoadVisual ref="roadVisualRef" />

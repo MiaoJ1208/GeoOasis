@@ -87,12 +87,13 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, watch } from "vue";
+import { onBeforeUnmount, onMounted, ref, watch } from "vue";
 import * as Cesium from "cesium";
 import { useGeoOasisStore } from "../store/GeoOasis.store";
 import { storeToRefs } from "pinia";
 import { nanoid } from "nanoid";
 import { ElMessage } from "element-plus";
+import { RealtimeTrafficSimulation } from "../traffic/realtimeTrafficSimulation";
 
 const store = useGeoOasisStore();
 const { editor, isTrafficAnalysis } = storeToRefs(store);
@@ -2004,6 +2005,61 @@ function videoVehicle() {
     }
 }
 
+let realtimeTrafficSimulation: RealtimeTrafficSimulation | undefined;
+
+async function toggleRealtimeTraffic() {
+    if (!editor?.value?.viewer) {
+        ElMessage.error("三维场景尚未初始化");
+        return;
+    }
+
+    if (!realtimeTrafficSimulation) {
+        realtimeTrafficSimulation = new RealtimeTrafficSimulation(
+            editor.value.viewer,
+            (message) => {
+                console.log(`[RealtimeTraffic] ${message}`);
+                ElMessage({
+                    message,
+                    type: "info",
+                    duration: 1500,
+                    grouping: true
+                });
+            }
+        );
+    }
+
+    const processingMessage = ElMessage({
+        message: realtimeTrafficSimulation.isRunning
+            ? "正在停止实时交通模拟…"
+            : "正在准备实时交通模拟数据…",
+        type: "info",
+        duration: 0
+    });
+    try {
+        const result = await realtimeTrafficSimulation.toggle();
+        if (result === "downloaded") {
+            ElMessage.success(
+                "已下载 realtime-traffic-30.json，请将文件放入 public/data/cpgs84/Simulation 后再次点击"
+            );
+        } else if (result === "started") {
+            ElMessage.success("实时交通模拟已启动");
+        } else {
+            ElMessage.success("实时交通模拟已停止");
+        }
+    } catch (error) {
+        console.error("[RealtimeTraffic] Failed:", error);
+        ElMessage.error(
+            error instanceof Error ? error.message : "实时交通模拟处理失败"
+        );
+    } finally {
+        processingMessage.close();
+    }
+}
+
+onBeforeUnmount(() => {
+    realtimeTrafficSimulation?.stop();
+});
+
 onMounted(() => {
     console.log("[RoadVisual] mounted");
 });
@@ -2013,6 +2069,7 @@ defineExpose({
     loadTrajectories,
     toggleK37Trajectories,
     videoVehicle,
+    toggleRealtimeTraffic,
     connectVehicleSocket,
     // 交通态势相关导出
     startTrafficAnimation,
