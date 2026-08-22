@@ -2039,7 +2039,7 @@ async function toggleRealtimeTraffic() {
         const result = await realtimeTrafficSimulation.toggle();
         if (result === "downloaded") {
             ElMessage.success(
-                "已下载 realtime-traffic-30.json，请将文件放入 public/data/cpgs84/Simulation 后再次点击"
+                "已下载 realtime-traffic-150.json，请将文件放入 public/data/cpgs84/Simulation 后再次点击"
             );
         } else if (result === "started") {
             ElMessage.success("实时交通模拟已启动");

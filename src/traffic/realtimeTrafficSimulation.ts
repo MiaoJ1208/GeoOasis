@@ -1,23 +1,36 @@
 import * as Cesium from "cesium";
 
 const TILESET_URL = "/3DTiles/WGS84/tileset.json";
-const OUTPUT_URL = "/data/cpgs84/Simulation/realtime-traffic-30.json";
+const OUTPUT_URL = "/data/cpgs84/Simulation/realtime-traffic-150.json";
 const LANE_CENTERLINE_URL = "/data/cpgs84/LaneCenterline.geojson";
 const ROAD_CENTERLINE_URL = "/data/cpgs84/RoadCenterLine.geojson";
 const MODEL_URL = "/SUV_gltf/b03505c6f4f942e5ade70692a899e702.gltf";
-const OUTPUT_FILE_NAME = "realtime-traffic-30.json";
+const OUTPUT_FILE_NAME = "realtime-traffic-150.json";
 const ROUTE_SAMPLE_SPACING_METERS = 3;
 const VEHICLE_SAMPLE_INTERVAL_SECONDS = 0.2;
 const COLLISION_CHECK_INTERVAL_SECONDS = 0.1;
 const BENCHMARK_TIME_SECONDS = 10;
+const TRAFFIC_CYCLE_SECONDS = 120;
 const LOWER_DECK_RAY_STEP_METERS = 0.5;
 const LOWER_DECK_MAX_DEPTH_METERS = 25;
 const LOWER_DECK_MAX_RAY_HITS = 4;
 const LOWER_DECK_SURFACE_CLUSTER_METERS = 2;
 const LOWER_DECK_RAY_BATCH_SIZE = 16;
+const ROAD_SURFACE_RAY_ORIGIN_HEIGHT_METERS = 10_000;
+const ROAD_SURFACE_RAY_WIDTH_METERS = 0.25;
+const ROAD_SURFACE_RAY_BATCH_SIZE = 16;
+const ROAD_BOUNDARY_REFINEMENT_STEPS = 5;
+const STITCH_CLOSEST_POINT_SEARCH_METERS = 30;
 const CONNECTOR_MAX_GRADE = 0.3;
 const CONNECTOR_SPIKE_MAX_SEGMENTS = 2;
 const CONNECTOR_SPIKE_BLEND_POINTS = 2;
+const TRAFFIC_RANDOM_SEED = 20_260_821;
+const MAX_ACTIVE_VEHICLE_COUNT = 150;
+const MIN_ACTIVE_VEHICLE_COUNT = 80;
+const MAX_INGRESS_GAP_SECONDS = 8;
+
+// 修改道路数据、三维模型、车辆规则或JSON结构后，只需修改此标识。
+export const TRAFFIC_DATA_REVISION = "traffic-sim-20260823-04";
 
 type LonLat = [number, number];
 
@@ -78,7 +91,7 @@ export type RealtimeTrafficVehicle = {
 };
 
 export type RealtimeTrafficData = {
-    version: 2;
+    revision: string;
     coordinateSystem: "EPSG:4326";
     generatedAt: string;
     sourceTileset: string;
@@ -96,6 +109,7 @@ export type RealtimeTrafficData = {
         expectedPeakVehicles: number;
         mainlineVehicles: number;
         connectorVehicles: number;
+        continuousLoop: true;
     };
     validation: {
         peakVehicles: number;
@@ -103,6 +117,8 @@ export type RealtimeTrafficData = {
         routesWithSampledHeight: number;
         lowerDeckAdjustedRoutePoints: number;
         maxConnectorGradePercent: number;
+        minimumVehicles: number;
+        maxIngressGapSeconds: number;
     };
     vehicles: RealtimeTrafficVehicle[];
 };
@@ -112,12 +128,21 @@ export type RealtimeTrafficStartResult = "started" | "stopped" | "downloaded";
 type GenerationProgress = (message: string) => void;
 
 const mainlineRouteDefinitions = [
-    { id: "main-east-1", records: [446, 443, 440] },
-    { id: "main-east-2", records: [447, 444, 441] },
-    { id: "main-east-3", records: [448, 445, 442] },
-    { id: "main-west-1", records: [419, 422, 427] },
-    { id: "main-west-2", records: [420, 423, 428] },
-    { id: "main-west-3", records: [421, 424, 429] }
+    { id: "main-east-1", records: [457, 454, 450, 446, 443, 440] },
+    { id: "main-east-2", records: [458, 455, 451, 447, 444, 441] },
+    { id: "main-east-3", records: [459, 456, 452, 448, 445, 442] },
+    {
+        id: "main-west-1",
+        records: [402, 408, 412, 416, 419, 422, 427, 430]
+    },
+    {
+        id: "main-west-2",
+        records: [404, 410, 413, 417, 420, 423, 428, 431]
+    },
+    {
+        id: "main-west-3",
+        records: [406, 411, 414, 418, 421, 424, 429, 432]
+    }
 ] as const;
 
 const connectorRouteDefinitions = [23, 24, 25, 26, 27, 28].map((record) => ({
@@ -265,6 +290,78 @@ function joinRecords(
     return joined;
 }
 
+function trimLineStartToClosestPoint(line: LonLat[], point: LonLat) {
+    let traveledDistance = 0;
+    let best:
+        | {
+              segmentIndex: number;
+              ratio: number;
+              point: LonLat;
+              distance: number;
+          }
+        | undefined;
+
+    for (
+        let index = 0;
+        index < line.length - 1 &&
+        traveledDistance <= STITCH_CLOSEST_POINT_SEARCH_METERS;
+        index++
+    ) {
+        const start = line[index];
+        const end = line[index + 1];
+        const averageLatitude = Cesium.Math.toRadians(
+            (point[1] + start[1] + end[1]) / 3
+        );
+        const longitudeScale = 111_320 * Math.cos(averageLatitude);
+        const latitudeScale = 110_540;
+        const segmentX = (end[0] - start[0]) * longitudeScale;
+        const segmentY = (end[1] - start[1]) * latitudeScale;
+        const pointX = (point[0] - start[0]) * longitudeScale;
+        const pointY = (point[1] - start[1]) * latitudeScale;
+        const squaredLength = segmentX ** 2 + segmentY ** 2;
+        const ratio =
+            squaredLength > 0
+                ? Cesium.Math.clamp(
+                      (pointX * segmentX + pointY * segmentY) / squaredLength,
+                      0,
+                      1
+                  )
+                : 0;
+        const projected = interpolateLonLat(start, end, ratio);
+        const distance = horizontalDistance(point, projected);
+        if (!best || distance < best.distance) {
+            best = { segmentIndex: index, ratio, point: projected, distance };
+        }
+        traveledDistance += horizontalDistance(start, end);
+    }
+
+    if (!best) return line;
+    const nextIndex = best.ratio >= 0.999 ? best.segmentIndex + 2 : best.segmentIndex + 1;
+    return [best.point, ...line.slice(nextIndex)];
+}
+
+function stitchCoordinateParts(parts: LonLat[][], maximumGapMeters: number) {
+    const joined: LonLat[] = [];
+    for (const part of parts) {
+        const coordinates = part.map((point) => [...point] as LonLat);
+        if (!coordinates.length) continue;
+        if (joined.length > 0) {
+            const trimmed = trimLineStartToClosestPoint(
+                coordinates,
+                joined[joined.length - 1]
+            );
+            coordinates.splice(0, coordinates.length, ...trimmed);
+            const gap = horizontalDistance(joined[joined.length - 1], coordinates[0]);
+            if (gap > maximumGapMeters) {
+                throw new Error(`道路与车道线连接处存在 ${gap.toFixed(1)} 米间隙`);
+            }
+            if (gap <= 0.05) coordinates.shift();
+        }
+        joined.push(...coordinates);
+    }
+    return joined;
+}
+
 export function buildRealtimeTrafficRoutes(
     laneCollection: GeoJsonFeatureCollection,
     roadCollection: GeoJsonFeatureCollection
@@ -296,18 +393,74 @@ export function buildRealtimeTrafficRoutes(
     }
 
     for (const definition of connectorRouteDefinitions) {
+        let sourceSegments: SourceSegment[];
+        let joinedCoordinates: LonLat[];
+        if (definition.records[0] === 23) {
+            sourceSegments = [
+                { source: "LaneCenterline", recordNumber: 449 },
+                { source: "RoadCenterLine", recordNumber: 23 }
+            ];
+            joinedCoordinates = stitchCoordinateParts(
+                [joinRecords([449], laneMap), joinRecords([23], roadMap)],
+                8
+            );
+        } else if (definition.records[0] === 24) {
+            sourceSegments = [
+                { source: "RoadCenterLine", recordNumber: 24 },
+                { source: "LaneCenterline", recordNumber: 415 },
+                { source: "LaneCenterline", recordNumber: 412 },
+                { source: "LaneCenterline", recordNumber: 408 },
+                { source: "LaneCenterline", recordNumber: 402 }
+            ];
+            joinedCoordinates = stitchCoordinateParts(
+                [
+                    joinRecords([24], roadMap),
+                    joinRecords([402, 408, 412, 415], laneMap).reverse()
+                ],
+                9
+            );
+        } else if (definition.records[0] === 27) {
+            sourceSegments = [
+                { source: "RoadCenterLine", recordNumber: 27 },
+                { source: "LaneCenterline", recordNumber: 425 },
+                { source: "LaneCenterline", recordNumber: 426 },
+                { source: "LaneCenterline", recordNumber: 430 }
+            ];
+            joinedCoordinates = stitchCoordinateParts(
+                [
+                    joinRecords([27], roadMap),
+                    joinRecords([425, 426, 430], laneMap)
+                ],
+                14
+            );
+        } else if (definition.records[0] === 28) {
+            sourceSegments = [
+                { source: "LaneCenterline", recordNumber: 388 },
+                { source: "RoadCenterLine", recordNumber: 28 }
+            ];
+            joinedCoordinates = stitchCoordinateParts(
+                [
+                    joinRecords([388], laneMap).reverse(),
+                    joinRecords([28], roadMap)
+                ],
+                8
+            );
+        } else {
+            sourceSegments = definition.records.map((recordNumber) => ({
+                source: "RoadCenterLine",
+                recordNumber
+            }));
+            joinedCoordinates = joinRecords(definition.records, roadMap);
+        }
         const coordinates = resampleLine(
-            joinRecords(definition.records, roadMap),
+            joinedCoordinates,
             ROUTE_SAMPLE_SPACING_METERS
         );
         routes.push({
             id: definition.id,
             routeType: "connector",
             elevationMode: "prefer-lower-continuous",
-            sourceSegments: definition.records.map((recordNumber) => ({
-                source: "RoadCenterLine",
-                recordNumber
-            })),
+            sourceSegments,
             points: withDistances(
                 coordinates.map(([longitude, latitude]) => ({
                     longitude,
@@ -384,7 +537,7 @@ function fillSmallHeightGaps(points: RoutePoint[]) {
     }
 }
 
-function longestValidHeightRun(points: RoutePoint[]) {
+function getLongestValidHeightRunIndexes(points: RoutePoint[]) {
     let bestStart = -1;
     let bestEnd = -1;
     let runStart = -1;
@@ -410,14 +563,22 @@ function longestValidHeightRun(points: RoutePoint[]) {
     }
 
     if (bestStart < 0 || bestEnd <= bestStart) {
-        return [];
+        return undefined;
     }
 
+    return { start: bestStart, end: bestEnd };
+}
+
+function longestValidHeightRun(points: RoutePoint[]) {
+    const indexes = getLongestValidHeightRunIndexes(points);
+    if (!indexes) return [];
+
     return withDistances(
-        points.slice(bestStart, bestEnd + 1).map((point) => ({
+        points.slice(indexes.start, indexes.end + 1).map((point) => ({
             longitude: point.longitude,
             latitude: point.latitude,
-            height: point.height
+            height: point.height,
+            heightSource: point.heightSource
         }))
     );
 }
@@ -433,6 +594,120 @@ type SceneWithMostDetailedRayPick = Cesium.Scene & {
         width?: number
     ) => Promise<MostDetailedRayPickResult | undefined>;
 };
+
+async function pickTopTilesetSurfaceHeight(
+    viewer: Cesium.Viewer,
+    point: Pick<RoutePoint, "longitude" | "latitude">,
+    objectsToExclude: object[]
+) {
+    const scene = viewer.scene as SceneWithMostDetailedRayPick;
+    if (typeof scene.pickFromRayMostDetailed !== "function") {
+        throw new Error("当前Cesium版本不支持三维道路边界射线拾取");
+    }
+
+    const ellipsoid = viewer.scene.globe.ellipsoid;
+    const origin = Cesium.Cartesian3.fromDegrees(
+        point.longitude,
+        point.latitude,
+        ROAD_SURFACE_RAY_ORIGIN_HEIGHT_METERS
+    );
+    const surfaceNormal = ellipsoid.geodeticSurfaceNormal(
+        origin,
+        new Cesium.Cartesian3()
+    );
+    const direction = Cesium.Cartesian3.negate(
+        surfaceNormal,
+        new Cesium.Cartesian3()
+    );
+    const result = await scene.pickFromRayMostDetailed(
+        new Cesium.Ray(origin, direction),
+        objectsToExclude,
+        ROAD_SURFACE_RAY_WIDTH_METERS
+    );
+    if (!result?.position) return undefined;
+
+    const cartographic = Cesium.Cartographic.fromCartesian(
+        result.position,
+        ellipsoid
+    );
+    return cartographic && Number.isFinite(cartographic.height)
+        ? cartographic.height
+        : undefined;
+}
+
+async function refineTilesetSurfaceBoundary(
+    viewer: Cesium.Viewer,
+    outsidePoint: RoutePoint,
+    insidePoint: RoutePoint,
+    objectsToExclude: object[]
+) {
+    let outside: RoutePoint = { ...outsidePoint };
+    let inside: RoutePoint = { ...insidePoint };
+
+    for (let step = 0; step < ROAD_BOUNDARY_REFINEMENT_STEPS; step++) {
+        const middle: RoutePoint = {
+            longitude: (outside.longitude + inside.longitude) / 2,
+            latitude: (outside.latitude + inside.latitude) / 2,
+            distance: 0
+        };
+        const height = await pickTopTilesetSurfaceHeight(
+            viewer,
+            middle,
+            objectsToExclude
+        );
+        if (Number.isFinite(height)) {
+            middle.height = height;
+            middle.heightSource = "sample-height";
+            inside = middle;
+        } else {
+            outside = middle;
+        }
+    }
+
+    return inside;
+}
+
+async function clipRouteToTilesetSurface(
+    viewer: Cesium.Viewer,
+    route: RouteGeometry,
+    objectsToExclude: object[]
+) {
+    fillSmallHeightGaps(route.points);
+    const indexes = getLongestValidHeightRunIndexes(route.points);
+    if (!indexes) {
+        route.points = [];
+        return;
+    }
+
+    const clipped = route.points.slice(indexes.start, indexes.end + 1);
+    if (
+        indexes.start > 0 &&
+        !Number.isFinite(route.points[indexes.start - 1].height)
+    ) {
+        clipped[0] = await refineTilesetSurfaceBoundary(
+            viewer,
+            route.points[indexes.start - 1],
+            route.points[indexes.start],
+            objectsToExclude
+        );
+    }
+    if (
+        indexes.end < route.points.length - 1 &&
+        !Number.isFinite(route.points[indexes.end + 1].height)
+    ) {
+        clipped[clipped.length - 1] = await refineTilesetSurfaceBoundary(
+            viewer,
+            route.points[indexes.end + 1],
+            route.points[indexes.end],
+            objectsToExclude
+        );
+    }
+
+    clipped.forEach((point) => {
+        point.heightSource ??= "sample-height";
+    });
+    route.points = longestValidHeightRun(clipped);
+}
 
 function clusterSurfaceHeights(heights: number[]) {
     const sorted = [...heights].sort((a, b) => b - a);
@@ -799,30 +1074,39 @@ async function sampleRouteHeights(
           }
         | undefined;
     try {
-        for (let start = 0; start < flatPoints.length; start += 500) {
-            const batch = flatPoints.slice(start, start + 500);
-            const cartographics = batch.map((point) =>
-                Cesium.Cartographic.fromDegrees(point.longitude, point.latitude)
+        for (
+            let start = 0;
+            start < flatPoints.length;
+            start += ROAD_SURFACE_RAY_BATCH_SIZE
+        ) {
+            const batch = flatPoints.slice(
+                start,
+                start + ROAD_SURFACE_RAY_BATCH_SIZE
             );
-            const sampled = await viewer.scene.sampleHeightMostDetailed(
-                cartographics,
-                excludedObjects
+            const heights = await Promise.all(
+                batch.map((point) =>
+                    pickTopTilesetSurfaceHeight(
+                        viewer,
+                        point,
+                        excludedObjects
+                    )
+                )
             );
-            sampled.forEach((cartographic, index) => {
-                if (cartographic && Number.isFinite(cartographic.height)) {
-                    batch[index].height = cartographic.height;
+            heights.forEach((height, index) => {
+                if (Number.isFinite(height)) {
+                    batch[index].height = height;
+                    batch[index].heightSource = "sample-height";
                 }
             });
             onProgress(
-                `道路高度采样 ${Math.min(start + batch.length, flatPoints.length)}/${flatPoints.length}`
+                `道路模型边界与高度采样 ${Math.min(start + batch.length, flatPoints.length)}/${flatPoints.length}`
             );
             await new Promise<void>((resolve) => window.setTimeout(resolve, 0));
         }
 
         const invalidRoutes: string[] = [];
         for (const route of routes) {
-            fillSmallHeightGaps(route.points);
-            route.points = longestValidHeightRun(route.points);
+            await clipRouteToTilesetSurface(viewer, route, excludedObjects);
             const routeLength = route.points.at(-1)?.distance ?? 0;
             if (route.points.length < 2 || routeLength < 30) {
                 invalidRoutes.push(route.id);
@@ -901,6 +1185,7 @@ function sampleRouteAtDistance(route: RouteGeometry, distance: number) {
 function reverseRoute(route: RouteGeometry): RouteGeometry {
     return {
         ...route,
+        sourceSegments: [...route.sourceSegments].reverse(),
         points: withDistances(
             [...route.points].reverse().map((point) => ({
                 longitude: point.longitude,
@@ -916,21 +1201,18 @@ function createVehicle(
     vehicleId: string,
     route: RouteGeometry,
     startTime: number,
-    speedMetersPerSecond: number
+    speedMetersPerSecond: number,
+    speedPhase = 0,
+    speedVariation = 0
 ): RealtimeTrafficVehicle {
     const routeLength = route.points[route.points.length - 1].distance;
-    const duration = routeLength / speedMetersPerSecond;
     const samples: RealtimeTrafficSample[] = [];
+    let elapsed = 0;
+    let distance = 0;
+    let currentSpeed = speedMetersPerSecond;
 
-    for (
-        let elapsed = 0;
-        elapsed < duration;
-        elapsed += VEHICLE_SAMPLE_INTERVAL_SECONDS
-    ) {
-        const point = sampleRouteAtDistance(
-            route,
-            elapsed * speedMetersPerSecond
-        );
+    while (distance < routeLength) {
+        const point = sampleRouteAtDistance(route, distance);
         samples.push({
             time: Number((startTime + elapsed).toFixed(3)),
             longitude: point.longitude,
@@ -938,17 +1220,47 @@ function createVehicle(
             height: point.height,
             heightSource: point.heightSource
         });
+
+        const targetSpeed =
+            speedMetersPerSecond +
+            Math.sin(elapsed * 0.31 + speedPhase) * speedVariation +
+            Math.sin(elapsed * 0.11 + speedPhase * 1.7) * speedVariation * 0.35;
+        const maximumAcceleration = 0.7 * VEHICLE_SAMPLE_INTERVAL_SECONDS;
+        const maximumDeceleration = 0.9 * VEHICLE_SAMPLE_INTERVAL_SECONDS;
+        currentSpeed += Cesium.Math.clamp(
+            targetSpeed - currentSpeed,
+            -maximumDeceleration,
+            maximumAcceleration
+        );
+        currentSpeed = Math.max(currentSpeed, 3);
+
+        const nextDistance =
+            distance + currentSpeed * VEHICLE_SAMPLE_INTERVAL_SECONDS;
+        if (nextDistance >= routeLength) {
+            elapsed += (routeLength - distance) / currentSpeed;
+            distance = routeLength;
+            break;
+        }
+        distance = nextDistance;
+        elapsed += VEHICLE_SAMPLE_INTERVAL_SECONDS;
     }
 
     const finalPoint = sampleRouteAtDistance(route, routeLength);
-    const endTime = Number((startTime + duration).toFixed(3));
-    samples.push({
+    let endTime = Number((startTime + elapsed).toFixed(3));
+    const finalSample: RealtimeTrafficSample = {
         time: endTime,
         longitude: finalPoint.longitude,
         latitude: finalPoint.latitude,
         height: finalPoint.height,
         heightSource: finalPoint.heightSource
-    });
+    };
+    if (endTime <= samples.at(-1)!.time) {
+        endTime = samples.at(-1)!.time;
+        finalSample.time = endTime;
+        samples[samples.length - 1] = finalSample;
+    } else {
+        samples.push(finalSample);
+    }
 
     return {
         vehicleId,
@@ -965,6 +1277,7 @@ function createVehicle(
 type VehiclePose = {
     x: number;
     y: number;
+    z: number;
     headingX: number;
     headingY: number;
 };
@@ -985,6 +1298,7 @@ function sampleVehiclePose(vehicle: RealtimeTrafficVehicle, time: number) {
     const ratio = timeSpan > 0 ? (time - a.time) / timeSpan : 0;
     const longitude = Cesium.Math.lerp(a.longitude, b.longitude, ratio);
     const latitude = Cesium.Math.lerp(a.latitude, b.latitude, ratio);
+    const height = Cesium.Math.lerp(a.height, b.height, ratio);
     const referenceLatitude = Cesium.Math.toRadians(40.399);
     const x = longitude * 111_320 * Math.cos(referenceLatitude);
     const y = latitude * 110_540;
@@ -996,6 +1310,7 @@ function sampleVehiclePose(vehicle: RealtimeTrafficVehicle, time: number) {
     return {
         x,
         y,
+        z: height,
         headingX: (bx - ax) / magnitude,
         headingY: (by - ay) / magnitude
     } satisfies VehiclePose;
@@ -1027,6 +1342,8 @@ function projectionsOverlap(
 }
 
 function posesOverlap(first: VehiclePose, second: VehiclePose) {
+    if (Math.abs(first.z - second.z) >= 2.5) return false;
+
     const halfLength = 2.9;
     const halfWidth = 1.15;
     const deltaX = second.x - first.x;
@@ -1053,10 +1370,14 @@ function posesOverlap(first: VehiclePose, second: VehiclePose) {
 
 function vehiclesCollide(
     first: RealtimeTrafficVehicle,
-    second: RealtimeTrafficVehicle
+    second: RealtimeTrafficVehicle,
+    secondTimeOffset = 0
 ) {
-    const start = Math.max(first.startTime, second.startTime);
-    const stop = Math.min(first.endTime, second.endTime);
+    const start = Math.max(
+        first.startTime,
+        second.startTime + secondTimeOffset
+    );
+    const stop = Math.min(first.endTime, second.endTime + secondTimeOffset);
     if (stop <= start) return false;
 
     for (
@@ -1065,7 +1386,7 @@ function vehiclesCollide(
         time += COLLISION_CHECK_INTERVAL_SECONDS
     ) {
         const firstPose = sampleVehiclePose(first, time);
-        const secondPose = sampleVehiclePose(second, time);
+        const secondPose = sampleVehiclePose(second, time - secondTimeOffset);
         if (firstPose && secondPose && posesOverlap(firstPose, secondPose)) {
             return true;
         }
@@ -1077,7 +1398,43 @@ function collidesWithAny(
     candidate: RealtimeTrafficVehicle,
     vehicles: RealtimeTrafficVehicle[]
 ) {
-    return vehicles.some((vehicle) => vehiclesCollide(candidate, vehicle));
+    return vehicles.some((vehicle) =>
+        [-TRAFFIC_CYCLE_SECONDS, 0, TRAFFIC_CYCLE_SECONDS].some((offset) =>
+            vehiclesCollide(candidate, vehicle, offset)
+        )
+    );
+}
+
+function isActiveAtCycleTime(
+    vehicle: RealtimeTrafficVehicle,
+    cycleTime: number
+) {
+    return [
+        cycleTime - TRAFFIC_CYCLE_SECONDS,
+        cycleTime,
+        cycleTime + TRAFFIC_CYCLE_SECONDS
+    ].some(
+        (sampleTime) =>
+            sampleTime >= vehicle.startTime && sampleTime <= vehicle.endTime
+    );
+}
+
+function wouldExceedActiveVehicleLimit(
+    candidate: RealtimeTrafficVehicle,
+    vehicles: RealtimeTrafficVehicle[]
+) {
+    for (
+        let time = 0;
+        time < TRAFFIC_CYCLE_SECONDS;
+        time += VEHICLE_SAMPLE_INTERVAL_SECONDS
+    ) {
+        if (!isActiveAtCycleTime(candidate, time)) continue;
+        const activeVehicles = vehicles.filter((vehicle) =>
+            isActiveAtCycleTime(vehicle, time)
+        ).length;
+        if (activeVehicles >= MAX_ACTIVE_VEHICLE_COUNT) return true;
+    }
+    return false;
 }
 
 export function scheduleRealtimeTrafficVehicles(routes: RouteGeometry[]) {
@@ -1088,71 +1445,135 @@ export function scheduleRealtimeTrafficVehicles(routes: RouteGeometry[]) {
         (route) => route.routeType === "connector"
     );
     const vehicles: RealtimeTrafficVehicle[] = [];
+    const random = createSeededRandom(TRAFFIC_RANDOM_SEED);
+    const mainlineTargetActiveCounts = [22, 22, 22, 22, 22, 21];
+    const connectorTargetActiveCounts: Record<number, number> = {
+        23: 7,
+        24: 7,
+        27: 7,
+        28: 9
+    };
 
-    mainlineRoutes.forEach((route, routeIndex) => {
-        const speed = 13 + (routeIndex % 3) * 0.6;
-        for (let index = 0; index < 4; index++) {
-            const vehicle = createVehicle(
-                `main-${routeIndex + 1}-${index + 1}`,
-                route,
-                index * 1.5,
-                speed
-            );
-            if (collidesWithAny(vehicle, vehicles)) {
-                throw new Error(`主线车辆调度发生重叠：${vehicle.vehicleId}`);
-            }
-            vehicles.push(vehicle);
-        }
-    });
+    function scheduleStream(
+        route: RouteGeometry,
+        vehicleIdPrefix: string,
+        targetActiveVehicles: number,
+        baseSpeed: number,
+        speedVariation: number,
+        searchEntireCycle = false
+    ) {
+        const nominalDuration = createVehicle(
+            "preview",
+            route,
+            0,
+            baseSpeed
+        ).endTime;
+        const nominalHeadway = nominalDuration / targetActiveVehicles;
+        let plannedStart = random() * nominalHeadway;
+        let vehicleIndex = 1;
 
-    connectorRoutes.forEach((sourceRoute, routeIndex) => {
-        const speed = 6;
-        const orientations = [sourceRoute, reverseRoute(sourceRoute)];
-        let scheduled: RealtimeTrafficVehicle | undefined;
+        while (plannedStart < TRAFFIC_CYCLE_SECONDS) {
+            const speed = baseSpeed + (random() - 0.5) * 0.5;
+            const speedPhase = random() * Math.PI * 2;
+            let scheduled: RealtimeTrafficVehicle | undefined;
 
-        for (const route of orientations) {
-            const duration =
-                route.points[route.points.length - 1].distance / speed;
-            const minStart = Math.max(
-                0,
-                BENCHMARK_TIME_SECONDS - duration + 0.25
-            );
-            const maxStart = BENCHMARK_TIME_SECONDS - 0.25;
-            const candidates: number[] = [];
-            for (let time = minStart; time <= maxStart; time += 0.25) {
-                candidates.push(time);
-            }
-            candidates.sort((a, b) => Math.abs(a - 4) - Math.abs(b - 4));
-
-            for (const startTime of candidates) {
+            const maximumAttempts = searchEntireCycle
+                ? Math.ceil(
+                      TRAFFIC_CYCLE_SECONDS /
+                          VEHICLE_SAMPLE_INTERVAL_SECONDS
+                  )
+                : 20;
+            for (let attempt = 0; attempt < maximumAttempts; attempt++) {
+                const delayedStart = plannedStart + attempt * 0.2;
+                const candidateStart = searchEntireCycle
+                    ? delayedStart % TRAFFIC_CYCLE_SECONDS
+                    : delayedStart;
+                if (!searchEntireCycle && candidateStart >= TRAFFIC_CYCLE_SECONDS) {
+                    break;
+                }
                 const candidate = createVehicle(
-                    `connector-${routeIndex + 1}`,
+                    `${vehicleIdPrefix}-${vehicleIndex}`,
                     route,
-                    startTime,
-                    speed
+                    candidateStart,
+                    speed - Math.floor(attempt / 5) * 0.08,
+                    speedPhase,
+                    speedVariation
                 );
-                if (!collidesWithAny(candidate, vehicles)) {
+                if (
+                    !collidesWithAny(candidate, vehicles) &&
+                    !wouldExceedActiveVehicleLimit(candidate, vehicles)
+                ) {
                     scheduled = candidate;
                     break;
                 }
             }
-            if (scheduled) break;
-        }
 
-        if (!scheduled) {
-            throw new Error(`连接线车辆无法无碰撞调度：${sourceRoute.id}`);
+            if (scheduled) {
+                vehicles.push(scheduled);
+                vehicleIndex++;
+            }
+            plannedStart += nominalHeadway * (0.82 + random() * 0.36);
         }
-        vehicles.push(scheduled);
+    }
+
+    connectorRoutes.forEach((sourceRoute) => {
+        const recordNumber = sourceRoute.sourceSegments.find(
+            (segment) => segment.source === "RoadCenterLine"
+        )!.recordNumber;
+        if (recordNumber === 25 || recordNumber === 26) return;
+        const route =
+            recordNumber === 24 || recordNumber === 28
+                ? reverseRoute(sourceRoute)
+                : sourceRoute;
+        scheduleStream(
+            route,
+            `connector-${recordNumber}`,
+            connectorTargetActiveCounts[recordNumber] ?? 1,
+            6.2 + random() * 1.3,
+            0.4,
+            true
+        );
+
+        if (
+            !vehicles.some(
+                (vehicle) => vehicle.vehicleId === `connector-${recordNumber}-1`
+            )
+        ) {
+            throw new Error(
+                `连接线车辆无法按固定方向调度：connector-${recordNumber}`
+            );
+        }
+    });
+
+    mainlineRoutes.forEach((route, routeIndex) => {
+        scheduleStream(
+            route,
+            `main-${routeIndex + 1}`,
+            mainlineTargetActiveCounts[routeIndex],
+            11.8 + (routeIndex % 3) * 0.75 + random() * 0.45,
+            0.55
+        );
     });
 
     return vehicles;
 }
 
+function createSeededRandom(seed: number) {
+    let state = seed >>> 0;
+    return () => {
+        state += 0x6d2b79f5;
+        let value = state;
+        value = Math.imul(value ^ (value >>> 15), value | 1);
+        value ^= value + Math.imul(value ^ (value >>> 7), value | 61);
+        return ((value ^ (value >>> 14)) >>> 0) / 4_294_967_296;
+    };
+}
+
 export function validateRealtimeTrafficVehicles(
     vehicles: RealtimeTrafficVehicle[]
 ) {
-    if (vehicles.length !== 30) {
-        throw new Error(`车辆数量应为30，实际为${vehicles.length}`);
+    if (vehicles.length < MAX_ACTIVE_VEHICLE_COUNT) {
+        throw new Error(`循环车流事件数量不足，实际为${vehicles.length}`);
     }
 
     for (const vehicle of vehicles) {
@@ -1177,7 +1598,16 @@ export function validateRealtimeTrafficVehicles(
     let collisionCount = 0;
     for (let first = 0; first < vehicles.length; first++) {
         for (let second = first + 1; second < vehicles.length; second++) {
-            if (vehiclesCollide(vehicles[first], vehicles[second])) {
+            if (
+                [-TRAFFIC_CYCLE_SECONDS, 0, TRAFFIC_CYCLE_SECONDS].some(
+                    (offset) =>
+                        vehiclesCollide(
+                            vehicles[first],
+                            vehicles[second],
+                            offset
+                        )
+                )
+            ) {
                 collisionCount++;
             }
         }
@@ -1186,18 +1616,56 @@ export function validateRealtimeTrafficVehicles(
         throw new Error(`轨迹校验发现 ${collisionCount} 组车辆重叠`);
     }
 
-    const peakVehicles = vehicles.filter(
-        (vehicle) =>
-            vehicle.startTime <= BENCHMARK_TIME_SECONDS &&
-            vehicle.endTime >= BENCHMARK_TIME_SECONDS
-    ).length;
-    if (peakVehicles !== 30) {
+    let peakVehicles = 0;
+    let minimumVehicles = Number.POSITIVE_INFINITY;
+    for (
+        let time = 0;
+        time < TRAFFIC_CYCLE_SECONDS;
+        time += VEHICLE_SAMPLE_INTERVAL_SECONDS
+    ) {
+        const activeVehicles = vehicles.filter((vehicle) =>
+            isActiveAtCycleTime(vehicle, time)
+        ).length;
+        peakVehicles = Math.max(peakVehicles, activeVehicles);
+        minimumVehicles = Math.min(minimumVehicles, activeVehicles);
+    }
+    if (peakVehicles > MAX_ACTIVE_VEHICLE_COUNT) {
         throw new Error(
-            `${BENCHMARK_TIME_SECONDS}秒时应同时存在30辆车，实际为${peakVehicles}`
+            `循环车流峰值不得超过${MAX_ACTIVE_VEHICLE_COUNT}辆，实际为${peakVehicles}`
+        );
+    }
+    if (minimumVehicles < MIN_ACTIVE_VEHICLE_COUNT) {
+        throw new Error(
+            `循环车流最低仅${minimumVehicles}辆，未达到持续车流要求`
         );
     }
 
-    return { peakVehicles, collisionCount };
+    const startTimes = vehicles
+        .map((vehicle) => vehicle.startTime)
+        .sort((a, b) => a - b);
+    let maxIngressGapSeconds = 0;
+    for (let index = 1; index < startTimes.length; index++) {
+        maxIngressGapSeconds = Math.max(
+            maxIngressGapSeconds,
+            startTimes[index] - startTimes[index - 1]
+        );
+    }
+    maxIngressGapSeconds = Math.max(
+        maxIngressGapSeconds,
+        startTimes[0] + TRAFFIC_CYCLE_SECONDS - startTimes.at(-1)!
+    );
+    if (maxIngressGapSeconds > MAX_INGRESS_GAP_SECONDS) {
+        throw new Error(
+            `循环中最长${maxIngressGapSeconds.toFixed(1)}秒没有新车驶入`
+        );
+    }
+
+    return {
+        peakVehicles,
+        minimumVehicles,
+        maxIngressGapSeconds: Number(maxIngressGapSeconds.toFixed(2)),
+        collisionCount
+    };
 }
 
 function downloadJson(data: RealtimeTrafficData) {
@@ -1233,15 +1701,16 @@ async function generateTrafficData(
         routes,
         onProgress
     );
-    onProgress("正在调度30辆车并检查重叠");
+    onProgress("正在生成非均匀车流并校验150辆车的安全间距");
     const vehicles = scheduleRealtimeTrafficVehicles(routes);
     const validation = validateRealtimeTrafficVehicles(vehicles);
-    const durationSeconds = Math.max(
-        ...vehicles.map((vehicle) => vehicle.endTime)
-    );
+    const mainlineVehicles = vehicles.filter(
+        (vehicle) => vehicle.routeType === "mainline"
+    ).length;
+    const connectorVehicles = vehicles.length - mainlineVehicles;
 
     return {
-        version: 2,
+        revision: TRAFFIC_DATA_REVISION,
         coordinateSystem: "EPSG:4326",
         generatedAt: new Date().toISOString(),
         sourceTileset: TILESET_URL,
@@ -1253,12 +1722,13 @@ async function generateTrafficData(
             widthMeters: 1.9
         },
         simulation: {
-            durationSeconds,
+            durationSeconds: TRAFFIC_CYCLE_SECONDS,
             sampleIntervalSeconds: VEHICLE_SAMPLE_INTERVAL_SECONDS,
             benchmarkTimeSeconds: BENCHMARK_TIME_SECONDS,
-            expectedPeakVehicles: 30,
-            mainlineVehicles: 24,
-            connectorVehicles: 6
+            expectedPeakVehicles: MAX_ACTIVE_VEHICLE_COUNT,
+            mainlineVehicles,
+            connectorVehicles,
+            continuousLoop: true
         },
         validation: {
             ...validation,
@@ -1280,7 +1750,9 @@ async function tryLoadTrafficData() {
     const text = await response.text();
     try {
         const data = JSON.parse(text) as Partial<RealtimeTrafficData>;
-        return data.version === 2 ? (data as RealtimeTrafficData) : undefined;
+        return data.revision === TRAFFIC_DATA_REVISION
+            ? (data as RealtimeTrafficData)
+            : undefined;
     } catch {
         if (text.trimStart().startsWith("<")) return undefined;
         throw new Error("实时交通JSON格式错误");
@@ -1428,23 +1900,28 @@ export class RealtimeTrafficSimulation {
 
         this.animationStartedAt = performance.now();
         const update = () => {
-            const elapsed =
+            const totalElapsed =
                 (performance.now() - this.animationStartedAt) / 1000;
-            if (!this.data || elapsed > this.data.simulation.durationSeconds) {
-                this.stop();
-                return;
-            }
-            const simulationTime = Cesium.JulianDate.addSeconds(
-                epoch,
-                elapsed,
-                new Cesium.JulianDate()
-            );
+            if (!this.data) return;
+            const cycleElapsed =
+                totalElapsed % this.data.simulation.durationSeconds;
             for (const runtime of this.vehicles) {
-                const active =
-                    elapsed >= runtime.data.startTime &&
-                    elapsed <= runtime.data.endTime;
-                runtime.entity.show = active;
-                if (!active) continue;
+                const sampleTime = [
+                    cycleElapsed - this.data.simulation.durationSeconds,
+                    cycleElapsed,
+                    cycleElapsed + this.data.simulation.durationSeconds
+                ].find(
+                    (candidate) =>
+                        candidate >= runtime.data.startTime &&
+                        candidate <= runtime.data.endTime
+                );
+                runtime.entity.show = sampleTime !== undefined;
+                if (sampleTime === undefined) continue;
+                const simulationTime = Cesium.JulianDate.addSeconds(
+                    epoch,
+                    sampleTime,
+                    new Cesium.JulianDate()
+                );
                 const nextPosition =
                     runtime.sampledPosition.getValue(simulationTime);
                 const nextOrientation =
