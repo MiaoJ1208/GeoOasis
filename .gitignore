@@ -7,6 +7,8 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 .VSCodeCounter
+.codex-edge-profile*/
+public/TJ6_2.glb
 
 node_modules
 dist
