@@ -31,8 +31,6 @@ async function runMerge() {
             }
         });
 
-        roadVisualRef.value?.connectVehicleSocket?.();
-
         if (!res.ok) {
             const errorData = await res
                 .json()
@@ -45,6 +43,7 @@ async function runMerge() {
 
         if (data.success) {
             ElMessage.success(data.message || "融合解析已启动");
+            roadVisualRef.value?.connectVehicleSocket?.();
         } else {
             ElMessage.error(data.message || data.error || "融合解析执行失败");
         }
