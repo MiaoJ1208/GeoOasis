@@ -1853,6 +1853,8 @@ function spawnRealtimeVehicle(
 
 let ws: WebSocket | null = null;
 let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+let shouldReconnectVehicleSocket = false;
+let vehicleSocketRetriesLeft = 0;
 
 function getVehicleWsUrl() {
     const configuredUrl = import.meta.env.VITE_VEHICLE_WS_URL;
@@ -1862,8 +1864,21 @@ function getVehicleWsUrl() {
     return `${protocol}//127.0.0.1:8765`;
 }
 
+function clearVehicleReconnectTimer() {
+    if (reconnectTimer) {
+        clearTimeout(reconnectTimer);
+        reconnectTimer = null;
+    }
+}
+
+function reportVehicleSocketUnavailable(wsUrl: string) {
+    shouldReconnectVehicleSocket = false;
+    console.error(`[WS] unable to connect after retries: ${wsUrl}`);
+    ElMessage.error("视频车辆服务连接失败，请确认识别服务已启动");
+}
+
 // 前端初始化 WebSocket 连接
-function initSocket(retriesLeft = 0) {
+function initSocket() {
     if (
         ws &&
         (ws.readyState === WebSocket.OPEN ||
@@ -1873,9 +1888,17 @@ function initSocket(retriesLeft = 0) {
     }
 
     const wsUrl = getVehicleWsUrl();
-    ws = new WebSocket(wsUrl); // 建立实例，指定服务器地址
+    let socket: WebSocket;
+    try {
+        socket = new WebSocket(wsUrl);
+    } catch (error) {
+        console.error(`[WS] invalid endpoint: ${wsUrl}`, error);
+        reportVehicleSocketUnavailable(wsUrl);
+        return;
+    }
+    ws = socket;
 
-    ws.onmessage = (ev) => {
+    socket.onmessage = (ev) => {
         console.log("[WS] message received");
         console.log("[WS raw]", ev.data);
 
@@ -1898,6 +1921,7 @@ function initSocket(retriesLeft = 0) {
         }
         if (msg.type === "task_finished") {
             console.log(`[WS] task_finished video_id=${msg.video_id}`);
+            ElMessage.success("视频车辆映射已完成");
             return;
         }
 
@@ -1906,34 +1930,67 @@ function initSocket(retriesLeft = 0) {
                 `[WS] task_error video_id=${msg.video_id}`,
                 msg.error
             );
+            ElMessage.error(msg.error || "视频车辆映射处理失败");
             return;
         }
     };
 
-    ws.onopen = () => {
+    socket.onopen = () => {
         console.log(`[WS] connected: ${wsUrl}`);
-        if (reconnectTimer) {
-            clearTimeout(reconnectTimer);
-            reconnectTimer = null;
-        }
+        clearVehicleReconnectTimer();
+        ElMessage.success("视频车辆服务已连接");
     };
-    ws.onerror = (event) => {
+    socket.onerror = (event) => {
         console.error(`[WS] connection failed: ${wsUrl}`, event);
     };
-    ws.onclose = () => {
-        const shouldRetry = retriesLeft > 0;
-        ws = null;
-        if (shouldRetry && !reconnectTimer) {
+    socket.onclose = () => {
+        if (ws === socket) {
+            ws = null;
+        }
+        if (!shouldReconnectVehicleSocket) return;
+
+        if (vehicleSocketRetriesLeft > 0 && !reconnectTimer) {
+            vehicleSocketRetriesLeft -= 1;
             reconnectTimer = setTimeout(() => {
                 reconnectTimer = null;
-                initSocket(retriesLeft - 1);
+                initSocket();
             }, 2000);
+        } else if (vehicleSocketRetriesLeft === 0) {
+            reportVehicleSocketUnavailable(wsUrl);
         }
     };
 }
 
 function connectVehicleSocket(retriesLeft = 15) {
-    initSocket(retriesLeft);
+    if (ws?.readyState === WebSocket.OPEN) {
+        ElMessage.info("视频车辆服务已连接");
+        return;
+    }
+    if (ws?.readyState === WebSocket.CONNECTING || reconnectTimer) {
+        ElMessage.info("正在连接视频车辆服务…");
+        return;
+    }
+
+    shouldReconnectVehicleSocket = true;
+    vehicleSocketRetriesLeft = Math.max(0, retriesLeft);
+    ElMessage.info("正在连接视频车辆服务…");
+    initSocket();
+}
+
+function disconnectVehicleSocket() {
+    shouldReconnectVehicleSocket = false;
+    vehicleSocketRetriesLeft = 0;
+    clearVehicleReconnectTimer();
+
+    const socket = ws;
+    ws = null;
+    if (
+        socket &&
+        (socket.readyState === WebSocket.OPEN ||
+            socket.readyState === WebSocket.CONNECTING)
+    ) {
+        socket.close();
+    }
 }
 
 function flyToInitView() {
@@ -1989,20 +2046,14 @@ watch(
 // });
 
 function videoVehicle() {
-    if (editor?.value && editor.value.viewer) {
-        viewer = editor.value.viewer;
-
-        console.log("[RoadVisual] viewer bound");
-
-        flyToInitView();
-        connectVehicleSocket();
-
-        viewer.entities.add({
-            position: VIDEO_ROUTE_VIEW,
-            point: { pixelSize: 6, color: Cesium.Color.RED },
-            label: { text: "VIEWER READY" }
-        });
+    if (!editor?.value?.viewer) {
+        ElMessage.error("三维场景尚未初始化");
+        return;
     }
+
+    viewer = editor.value.viewer;
+    flyToInitView();
+    connectVehicleSocket(2);
 }
 
 let realtimeTrafficSimulation: RealtimeTrafficSimulation | undefined;
@@ -2057,6 +2108,7 @@ async function toggleRealtimeTraffic() {
 }
 
 onBeforeUnmount(() => {
+    disconnectVehicleSocket();
     realtimeTrafficSimulation?.stop();
 });
 
