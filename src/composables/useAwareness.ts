@@ -125,6 +125,16 @@ export const useAwareness = (editor: Editor, roomId: Ref<string>) => {
         });
     };
 
+    const setUserName = (name: string) => {
+        localUser.value = {
+            ...localUser.value,
+            name
+        };
+        setUser(localUser.value);
+    };
+
+    const getUserName = () => localUser.value.name;
+
     const setUserPosition = (pos: UserPos) => {
         editor.provider?.awareness?.setLocalStateField("pos", {
             ...pos
@@ -188,7 +198,9 @@ export const useAwareness = (editor: Editor, roomId: Ref<string>) => {
 
     return {
         userList,
+        getUserName,
         setUser,
+        setUserName,
         setUserPosition
     };
 };
