@@ -326,7 +326,7 @@ export const useSetup = () => {
                 }
                 break;
             case "model":
-                if (!selectedModelIdx.value) {
+                if (selectedModelIdx.value === undefined) {
                     console.log("choose a model");
                     editingElement = null;
                     break;
