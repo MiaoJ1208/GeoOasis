@@ -11,19 +11,18 @@ const { flyToHome } = useSceneHelper();
             <div class="info">Lat: {{ cursorPosition.lat }}</div>
             <div class="info">Height: {{ cursorPosition.height }}</div>
         </div> -->
-        <div class="home" @click="flyToHome">Home</div>
+        <button type="button" class="home" @click="flyToHome">
+            返回全局视图
+        </button>
     </div>
 </template>
 
 <style scoped>
 .footerbar {
     position: fixed;
-    bottom: 50px;
-    right: 30px;
-    background-color: var(--grass-1);
-    box-shadow: 0 0 10px;
-    border-radius: 10px;
-    padding: 0 15px;
+    z-index: var(--ui-z-base-control);
+    top: 82px;
+    left: 288px;
     display: flex;
 }
 
@@ -40,6 +39,41 @@ const { flyToHome } = useSceneHelper();
 }
 
 .home {
+    min-height: 40px;
+    padding: 0 14px;
+    border: 1px solid var(--ui-border);
+    border-radius: var(--ui-radius-sm);
+    background: var(--ui-surface);
+    box-shadow: 0 8px 24px rgba(2, 6, 23, 0.28);
+    color: var(--ui-text-secondary);
+    font-size: 12px;
+    font-weight: 600;
     cursor: pointer;
+    transition: var(--ui-transition);
+}
+
+.home:hover {
+    border-color: var(--ui-border-strong);
+    background: var(--ui-surface-hover);
+    color: var(--ui-text);
+}
+
+@media (max-width: 920px) {
+    .footerbar {
+        top: 126px;
+        left: 240px;
+    }
+
+    .home {
+        min-height: 44px;
+    }
+}
+
+@media (max-width: 620px) {
+    .footerbar {
+        top: auto;
+        bottom: 206px;
+        left: 8px;
+    }
 }
 </style>

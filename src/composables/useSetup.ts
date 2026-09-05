@@ -1,6 +1,5 @@
 import { onMounted, ref, watch } from "vue";
 import { storeToRefs } from "pinia";
-import { ElNotification } from "element-plus";
 import {
     Viewer,
     Ion,
@@ -51,12 +50,6 @@ export const useSetup = () => {
         setupViewer();
         setupBaseLayers();
         addPointerListener();
-        ElNotification({
-            title: "Tips:",
-            message: "Map container mounted",
-            position: "bottom-right",
-            duration: 3000
-        });
     });
 
     const setupViewer = () => {

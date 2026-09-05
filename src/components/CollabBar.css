@@ -1,25 +1,55 @@
 .collabbar {
     display: flex;
-    gap: 10px;
-    background-color: var(--grass-1);
-    box-shadow: 0 0 10px;
-    border-radius: 5px;
-    padding: 0px 10px;
-    height: 45px;
+    min-height: 40px;
     align-items: center;
+    gap: 6px;
+    padding-left: 8px;
+    border-left: 1px solid var(--ui-border);
+}
+
+.collabbar .btn {
+    all: unset;
+    box-sizing: border-box;
+    display: inline-flex;
+    min-height: 36px;
+    align-items: center;
+    justify-content: center;
+    padding: 0 12px;
+    border: 1px solid var(--ui-border-strong);
+    border-radius: var(--ui-radius-sm);
+    background: var(--ui-accent-strong);
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--ui-transition);
+}
+
+.collabbar .btn:hover {
+    background: var(--ui-accent);
 }
 
 .AvatarRoot {
+    all: unset;
+    box-sizing: border-box;
     display: inline-flex;
+    width: 34px;
+    height: 34px;
     align-items: center;
     justify-content: center;
     vertical-align: middle;
     overflow: hidden;
     user-select: none;
-    width: 35px;
-    height: 35px;
-    border-radius: 100%;
-    background-color: var(--black-a3);
+    border: 1px solid var(--ui-border-strong);
+    border-radius: 50%;
+    background: var(--ui-accent-soft);
+    cursor: pointer;
+    transition: var(--ui-transition);
+}
+
+.AvatarRoot:hover {
+    border-color: #93c5fd;
+    transform: translateY(-1px);
 }
 
 .AvatarImage {
@@ -35,9 +65,24 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: var(--grass-8);
-    color: white;
-    font-size: 10px;
+    background: transparent;
+    color: #bfdbfe;
+    font-size: 11px;
     line-height: 1;
-    font-weight: 500;
+    font-weight: 700;
+}
+
+@media (max-width: 920px) {
+    .collabbar {
+        min-height: 44px;
+    }
+
+    .AvatarRoot {
+        width: 40px;
+        height: 40px;
+    }
+
+    .collabbar .btn {
+        min-height: 44px;
+    }
 }

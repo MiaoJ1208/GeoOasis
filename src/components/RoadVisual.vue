@@ -10,8 +10,15 @@
                             : resumeTrajectoryPlayback()
                     "
                     :title="isTrajectoryPlaying ? '暂停' : '播放'"
+                    :aria-label="isTrajectoryPlaying ? '暂停轨迹' : '播放轨迹'"
                 >
-                    {{ isTrajectoryPlaying ? "⏸" : "▶" }}
+                    <Icon
+                        :icon="
+                            isTrajectoryPlaying
+                                ? 'material-symbols:pause-rounded'
+                                : 'material-symbols:play-arrow-rounded'
+                        "
+                    />
                 </button>
 
                 <div class="progress-container">
@@ -49,8 +56,15 @@
                             : resumeTrafficAnimation()
                     "
                     :title="isTrafficPlaying ? '暂停' : '播放'"
+                    :aria-label="isTrafficPlaying ? '暂停交通态势' : '播放交通态势'"
                 >
-                    {{ isTrafficPlaying ? "⏸" : "▶" }}
+                    <Icon
+                        :icon="
+                            isTrafficPlaying
+                                ? 'material-symbols:pause-rounded'
+                                : 'material-symbols:play-arrow-rounded'
+                        "
+                    />
                 </button>
 
                 <!-- 进度条 -->
@@ -93,6 +107,7 @@ import { useGeoOasisStore } from "../store/GeoOasis.store";
 import { storeToRefs } from "pinia";
 import { nanoid } from "nanoid";
 import { ElMessage } from "element-plus";
+import { Icon } from "@iconify/vue";
 import { RealtimeTrafficSimulation } from "../traffic/realtimeTrafficSimulation";
 
 const store = useGeoOasisStore();
@@ -2090,49 +2105,49 @@ defineExpose({
 .trajectory-timeline-control,
 .traffic-timeline-control {
     position: fixed;
-    bottom: 20px;
+    z-index: var(--ui-z-panel);
+    bottom: 14px;
     left: 50%;
+    width: min(520px, calc(100vw - 590px));
+    min-width: 360px;
+    max-width: calc(100vw - 32px);
+    padding: 10px 12px;
+    border: 1px solid var(--ui-border);
+    border-radius: var(--ui-radius);
+    background: var(--ui-surface);
+    box-shadow: var(--ui-shadow);
     transform: translateX(-50%);
-    background: rgba(0, 0, 0, 0.8);
-    border-radius: 8px;
-    padding: 12px 16px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    z-index: 1000;
-    min-width: 400px;
-    max-width: 90%;
 }
 
 .trajectory-timeline-control {
-    bottom: 92px;
+    bottom: 72px;
 }
 
 .timeline-container {
     display: flex;
     align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
+    gap: 10px;
 }
 
 /* 播放/暂停按钮 */
 .play-btn {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border: none;
-    color: white;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    cursor: pointer;
-    font-size: 18px;
     display: flex;
+    width: 38px;
+    height: 38px;
+    flex: 0 0 auto;
     align-items: center;
     justify-content: center;
-    transition: all 0.3s ease;
-    flex-shrink: 0;
+    border: 1px solid var(--ui-border-strong);
+    border-radius: 50%;
+    background: var(--ui-accent-strong);
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    transition: var(--ui-transition);
 }
 
 .play-btn:hover {
-    transform: scale(1.1);
-    box-shadow: 0 4px 8px rgba(102, 126, 234, 0.4);
+    background: var(--ui-accent);
 }
 
 .play-btn:active {
@@ -2146,96 +2161,95 @@ defineExpose({
 }
 
 .timeline-slider {
+    position: relative;
     width: 100%;
-    height: 6px;
+    height: 5px;
     -webkit-appearance: none;
     appearance: none;
-    background: linear-gradient(to right, #667eea 0%, #764ba2 100%);
-    border-radius: 3px;
+    border-radius: 999px;
+    background: rgba(148, 163, 184, 0.3);
     outline: none;
     cursor: pointer;
-    position: relative;
 }
 
 /* 进度条轨道 */
 .timeline-slider::-webkit-slider-track {
-    background: rgba(255, 255, 255, 0.2);
-    height: 6px;
-    border-radius: 3px;
+    height: 5px;
+    border-radius: 999px;
+    background: rgba(148, 163, 184, 0.3);
 }
 
 .timeline-slider::-moz-range-track {
-    background: rgba(255, 255, 255, 0.2);
-    height: 6px;
-    border-radius: 3px;
+    height: 5px;
     border: none;
+    border-radius: 999px;
+    background: rgba(148, 163, 184, 0.3);
 }
 
 /* 进度条滑块 */
 .timeline-slider::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
     border-radius: 50%;
-    background: white;
+    background: #bfdbfe;
     cursor: pointer;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-    transition: all 0.2s ease;
+    box-shadow: 0 0 0 4px var(--ui-accent-soft);
+    transition: transform var(--ui-transition);
 }
 
 .timeline-slider::-webkit-slider-thumb:hover {
-    transform: scale(1.2);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.6);
+    transform: scale(1.08);
 }
 
 .timeline-slider::-moz-range-thumb {
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
     border-radius: 50%;
-    background: white;
-    cursor: pointer;
     border: none;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-    transition: all 0.2s ease;
+    background: #bfdbfe;
+    box-shadow: 0 0 0 4px var(--ui-accent-soft);
+    cursor: pointer;
+    transition: transform var(--ui-transition);
 }
 
 .timeline-slider::-moz-range-thumb:hover {
-    transform: scale(1.2);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.6);
+    transform: scale(1.08);
 }
 
 /* 时间戳显示 */
 .timestamp-display {
-    color: #64d5ff;
-    font-size: 13px;
-    font-weight: 500;
-    white-space: nowrap;
     min-width: 150px;
+    color: var(--ui-text-secondary);
+    font-family: "SFMono-Regular", Consolas, monospace;
+    font-size: 12px;
+    font-weight: 500;
     text-align: center;
-    font-family: "Courier New", monospace;
+    white-space: nowrap;
 }
 
 /* 进度百分比 */
 .progress-percent {
-    color: #a0d995;
-    font-size: 13px;
-    font-weight: 600;
     min-width: 40px;
+    color: #bfdbfe;
+    font-family: "SFMono-Regular", Consolas, monospace;
+    font-size: 12px;
+    font-weight: 600;
     text-align: right;
 }
 
 /* 响应式设计 */
-@media (max-width: 768px) {
+@media (max-width: 920px) {
     .trajectory-timeline-control,
     .traffic-timeline-control {
-        min-width: 320px;
-        bottom: 10px;
-        padding: 10px 12px;
+        bottom: 8px;
+        width: min(440px, calc(100vw - 470px));
+        min-width: 300px;
     }
 
     .trajectory-timeline-control {
-        bottom: 70px;
+        bottom: 66px;
     }
 
     .timeline-container {
@@ -2243,9 +2257,8 @@ defineExpose({
     }
 
     .play-btn {
-        width: 32px;
-        height: 32px;
-        font-size: 16px;
+        width: 44px;
+        height: 44px;
     }
 
     .timestamp-display {
@@ -2259,16 +2272,17 @@ defineExpose({
     }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 620px) {
     .trajectory-timeline-control,
     .traffic-timeline-control {
-        min-width: 90%;
-        bottom: 10px;
+        bottom: 206px;
+        width: calc(100vw - 16px);
+        min-width: 0;
         padding: 8px;
     }
 
     .trajectory-timeline-control {
-        bottom: 58px;
+        bottom: 264px;
     }
 
     .timeline-container {
@@ -2279,10 +2293,5 @@ defineExpose({
         display: none;
     }
 
-    .play-btn {
-        width: 28px;
-        height: 28px;
-        font-size: 14px;
-    }
 }
 </style>

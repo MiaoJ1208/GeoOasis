@@ -15,10 +15,13 @@ const { synOtherUserCamera } = useSceneHelper();
             class="AvatarRoot"
             v-for="user in store.userList"
             :key="user.id"
+            as="button"
+            :aria-label="`跟随协作者 ${user.name} 的视角`"
+            :title="user.name"
             @click="synOtherUserCamera(user)"
         >
             <AvatarFallback class="AvatarFallback">
-                {{ user.name }}
+                {{ user.name.slice(0, 2) }}
             </AvatarFallback>
         </AvatarRoot>
 
