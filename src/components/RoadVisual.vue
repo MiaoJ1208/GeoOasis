@@ -160,6 +160,15 @@ const trafficTimelineProgress = ref(0); // 0-100
 const isTrafficPlaying = ref(false); // 播放状态
 const currentTrafficTimestamp = ref(""); // 当前时间戳显示
 
+async function ensureDataSourceRegistered(
+    currentViewer: Cesium.Viewer,
+    dataSource: Cesium.CustomDataSource
+) {
+    if (!currentViewer.dataSources.contains(dataSource)) {
+        await currentViewer.dataSources.add(dataSource);
+    }
+}
+
 const isTrajectoryTimelineVisible = ref(false);
 const isTrajectoryPlaying = ref(false);
 const trajectoryTimelineProgress = ref(0);
@@ -353,6 +362,13 @@ async function loadTrafficData() {
     viewer = editor.value.viewer;
 
     try {
+        if (!trafficDataSource) {
+            trafficDataSource = new Cesium.CustomDataSource(
+                "cpgs_traffic_analysis"
+            );
+        }
+        await ensureDataSourceRegistered(viewer, trafficDataSource);
+
         const response = await fetch("/data/cpgs84/chengping_traffic_with_speeds.geojson");
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -403,6 +419,8 @@ async function loadTrafficData() {
 function updateTrafficDisplay(timestampIndex: number) {
     if (
         !viewer ||
+        !trafficDataSource ||
+        !viewer.dataSources.contains(trafficDataSource) ||
         timestampIndex < 0 ||
         timestampIndex >= trafficTimestamps.length
     ) {
@@ -410,10 +428,6 @@ function updateTrafficDisplay(timestampIndex: number) {
     }
 
     const currentTimestamp = trafficTimestamps[timestampIndex];
-    if (!trafficDataSource) {
-        trafficDataSource = new Cesium.CustomDataSource("cpgs_traffic_analysis");
-        viewer.dataSources.add(trafficDataSource);
-    }
     viewer.dataSources.raiseToTop(trafficDataSource);
 
     // 更新进度条和时间戳显示
@@ -980,8 +994,8 @@ async function loadK37Trajectories() {
         k37TrajectoryDataSource = new Cesium.CustomDataSource(
             "k37_trajectories"
         );
-        viewer.dataSources.add(k37TrajectoryDataSource);
     }
+    await ensureDataSourceRegistered(viewer, k37TrajectoryDataSource);
     viewer.dataSources.raiseToTop(k37TrajectoryDataSource);
 
     console.log(`[RoadVisual] Loading k37 trajectories: ${TRAJECTORY_URL}`);
