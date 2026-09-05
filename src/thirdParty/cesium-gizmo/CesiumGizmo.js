@@ -613,8 +613,9 @@ class CesiumGizmo {
             }
 
             this.modelMatrix = val.modelMatrix.clone();
+            this.show = true;
         } else {
-            // todo hide gizmo primitive
+            this.show = false;
         }
     }
 
@@ -817,7 +818,10 @@ class CesiumGizmo {
         );
         primitiveOpts.highlightColor = this.highlightColor;
 
-        this._modelMatrix = new Cesium.Matrix4();
+        // Keep a valid transform even before an editable primitive is selected.
+        // A zero matrix cannot be inverted and stops Cesium's render loop if the
+        // gizmo is made visible before `item` is assigned.
+        this._modelMatrix = Cesium.Matrix4.clone(Cesium.Matrix4.IDENTITY);
 
         if (
             Cesium.defined(options.item) &&
