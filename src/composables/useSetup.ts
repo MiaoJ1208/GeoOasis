@@ -8,10 +8,7 @@ import {
     ScreenSpaceEventHandler,
     ScreenSpaceEventType,
     Cartographic,
-    Math as CesiumMath,
-    CallbackProperty,
-    DistanceDisplayCondition,
-    Color
+    Math as CesiumMath
 } from "cesium";
 import { useGeoOasisStore } from "../store/GeoOasis.store";
 import { useSceneHelper } from "../composables/useSceneHelper";
@@ -40,8 +37,7 @@ export const useSetup = () => {
         selectedModelIdx,
         selectedElement,
         selectedLayer,
-        selectedBaseLayer,
-        cursorPosition
+        selectedBaseLayer
     } = storeToRefs(store);
     const { editor } = store;
     const { flyToHome } = useSceneHelper();
@@ -149,7 +145,6 @@ export const useSetup = () => {
     let editingElement: Element | null = null;
     let draggingElement: Element | undefined = undefined;
     let startPoint: Cartesian3;
-    let endPoint: Cartesian3;
     let viewer: Viewer;
 
     watch(drawMode, () => {
@@ -384,132 +379,6 @@ export const useSetup = () => {
                         positions: editor
                             .getElement(editingElement.id)
                             ?.positions.concat(point3FromCartesian3(startPoint))
-                    });
-                    break;
-                default:
-                    break;
-            }
-        }
-    };
-
-    const scratchCartographic = new Cartographic();
-
-    const handleCanvasMouseMove = (
-        motionEvent: ScreenSpaceEventHandler.MotionEvent
-    ) => {
-        if (drawMode.value === DrawMode.SPACE) return;
-        const startGlobePos = viewer.scene.pickPosition(
-            motionEvent.startPosition
-        );
-        const endGlobePos = viewer.scene.pickPosition(motionEvent.endPosition);
-        if (!startGlobePos || !endGlobePos) return;
-
-        // 注释掉坐标更新逻辑以取消获取鼠标坐标功能
-        // Cartographic.fromCartesian(endGlobePos, undefined, scratchCartographic);
-
-        // cursorPosition.value.lng = Number(CesiumMath.toDegrees(
-        //     scratchCartographic.longitude
-        // ).toFixed(6));
-        // cursorPosition.value.lat = Number(CesiumMath.toDegrees(
-        //     scratchCartographic.latitude
-        // ).toFixed(6));
-        // cursorPosition.value.height = Number(scratchCartographic.height.toFixed(6));
-
-        endPoint = endGlobePos;
-        // drag element logic
-        if (draggingElement !== undefined) {
-            // TODO: 优化drawMode
-            if (draggingElement.type === "model") return;
-            // const motionStartPosition = viewerRef.value.camera.pickEllipsoid(
-            //     motionEvent.startPosition
-            // );
-            // const motionEndPosition = viewerRef.value.camera.pickEllipsoid(
-            //     motionEvent.endPosition
-            // );
-            const delta_x = endGlobePos.x - startGlobePos.x;
-            const delta_y = endGlobePos.y - startGlobePos.y;
-            const delta_z = endGlobePos.z - startGlobePos.z;
-            let elTmp;
-            switch (draggingElement.type) {
-                case "point":
-                    editor.mutateElement(draggingElement.id, {
-                        positions: [
-                            {
-                                x: endGlobePos.x,
-                                y: endGlobePos.y,
-                                z: endGlobePos.z
-                            }
-                        ]
-                    });
-                    break;
-                case "polyline":
-                    elTmp = editor.getElement(draggingElement.id) as Element;
-                    editor.mutateElement(draggingElement.id, {
-                        positions: elTmp.positions.map((pos) => {
-                            return {
-                                x: pos.x + delta_x,
-                                y: pos.y + delta_y,
-                                z: pos.z + delta_z
-                            };
-                        })
-                    });
-                    break;
-                case "polygon":
-                    elTmp = editor.getElement(draggingElement.id) as Element;
-                    editor.mutateElement(draggingElement.id, {
-                        positions: elTmp.positions.map((pos) => {
-                            return {
-                                x: pos.x + delta_x,
-                                y: pos.y + delta_y,
-                                z: pos.z + delta_z
-                            };
-                        })
-                    });
-                    break;
-                default:
-                    break;
-            }
-            return;
-        }
-
-        // draw element logic
-        if (editingElement !== null) {
-            let update;
-            switch (activeTool.value) {
-                case "point":
-                    // 目前默认绘制point不会触发mousemove事件
-                    break;
-                case "polyline":
-                    // TODO 优化手段：减少对象创建
-                    update = [
-                        // @ts-ignore
-                        ...editor.getElement(editingElement.id).positions
-                    ];
-                    update[update.length - 1] = point3FromCartesian3(endPoint);
-                    editor.mutateElement(editingElement.id, {
-                        positions: update
-                    });
-                    break;
-                case "rectangle":
-                    update = [
-                        // @ts-ignore
-                        ...editor.getElement(editingElement.id).positions
-                    ];
-                    update[update.length - 1] = point3FromCartesian3(endPoint);
-                    editor.mutateElement(editingElement.id, {
-                        positions: update
-                    });
-                    break;
-                case "model":
-                    break;
-                case "polygon":
-                    update = [
-                        // @ts-ignore
-                        ...editor.getElement(editingElement.id).positions
-                    ];
-                    update[update.length - 1] = point3FromCartesian3(endPoint);
-                    editor.mutateElement(editingElement.id, {
-                        positions: update
                     });
                     break;
                 default:
