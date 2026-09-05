@@ -26,7 +26,7 @@ const {
 </script>
 
 <template>
-    <div class="info-panel" v-show="isPanelVisible">
+    <aside class="info-panel" v-show="isPanelVisible" aria-label="选中对象属性">
         <div v-show="selectedElement">
             <div v-for="(value, _index) in form" class="info-panel-item">
                 <div v-if="value[0] === 'name'">
@@ -134,30 +134,33 @@ const {
                 <div class="info-panel-item">
                     <Button @click="handleExecuteBtn(selectedTool)">
                         Execute
-                        <Icon icon="radix-icons:strikethrough" />
+                        <Icon icon="material-symbols:play-arrow-outline" />
                     </Button>
                 </div>
             </div>
         </div>
-    </div>
+    </aside>
 </template>
 
 <style scoped>
 .info-panel {
     position: fixed;
-    right: 30px;
-    top: 100px;
-
-    width: 250px;
-
-    background-color: var(--grass-1);
-    box-shadow: 0 0 10px;
-    border-radius: 10px;
-    padding: 20px;
+    z-index: var(--ui-z-context-panel);
+    top: 160px;
+    right: 272px;
+    width: 270px;
+    max-height: calc(100vh - 96px);
+    overflow-y: auto;
+    padding: 16px;
+    border: 1px solid var(--ui-border);
+    border-radius: 12px;
+    background: var(--ui-surface-strong);
+    box-shadow: var(--ui-shadow);
+    color: var(--ui-text-secondary);
 }
 
 .info-panel-item {
-    margin: 10px 0;
+    margin: 12px 0;
 }
 
 .info-panel-toolbar {
@@ -168,34 +171,68 @@ const {
 /* reset */
 input {
     all: unset;
+    box-sizing: border-box;
 }
 
 .LabelRoot {
-    /* margin-right: 10px; */
-    font-size: 15px;
-    font-weight: 500;
-    line-height: 35px;
+    display: block;
+    margin-bottom: 5px;
+    color: var(--ui-text-muted);
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.4;
+    text-transform: capitalize;
 }
 
 .Input {
-    width: 200px;
+    width: 100%;
+    height: 40px;
     display: inline-flex;
     align-items: center;
-    justify-content: center;
-    border-radius: 4px;
     padding: 0 10px;
-    height: 35px;
-    font-size: 15px;
+    border: 1px solid var(--ui-border);
+    border-radius: var(--ui-radius-sm);
+    background: rgba(2, 6, 23, 0.52);
+    color: var(--ui-text);
+    font-size: 13px;
     line-height: 1;
-    /* color: white; */
-    /* background-color: var(--green-5); */
-    box-shadow: 0 0 0 1px #1781ff;
+    transition: var(--ui-transition);
 }
+
 .Input:focus {
-    box-shadow: 0 0 0 2px black;
+    border-color: #60a5fa;
+    box-shadow: 0 0 0 3px var(--ui-accent-soft);
 }
+
 .Input::selection {
-    background-color: #1781ff;
+    background-color: var(--ui-accent);
     color: white;
+}
+
+.info-panel :deep(.el-input__wrapper),
+.info-panel :deep(.el-textarea__inner) {
+    border: 1px solid var(--ui-border);
+    background: rgba(2, 6, 23, 0.52);
+    box-shadow: none;
+    color: var(--ui-text);
+}
+
+@media (max-width: 1100px) {
+    .info-panel {
+        top: 152px;
+        right: 226px;
+        width: 240px;
+    }
+}
+
+@media (max-width: 620px) {
+    .info-panel {
+        top: auto;
+        right: 8px;
+        bottom: 212px;
+        left: 8px;
+        width: auto;
+        max-height: 34vh;
+    }
 }
 </style>

@@ -51,7 +51,8 @@ async function runMerge() {
     } catch (err: any) {
         console.error("run-merge error:", err);
         ElMessage.error(
-            err.message || "触发失败，请确认后端服务已启动（运行 pnpm run-bat-server）"
+            err.message ||
+                "触发失败，请确认后端服务已启动（运行 pnpm run-bat-server）"
         );
     }
 }
@@ -66,7 +67,6 @@ function toggleRealtimeTraffic() {
 
 <template>
     <div class="geoasis-app">
-        <div class="global-title">公路交通数字孪生智能平台</div>
         <Editor>
             <AppHeader />
             <LayersBar
@@ -94,22 +94,10 @@ function toggleRealtimeTraffic() {
 .geoasis-app {
     height: 100%;
     width: 100%;
-}
-
-.global-title {
-    position: fixed;
-    top: 30px;
-    left: 30%;
-    transform: translateX(-50%);
-    z-index: 1001;
-    font-size: 26px;
-    font-weight: 900;
-    color: #cce8ff;
-    letter-spacing: 1px;
-    padding: 4px 14px;
-    border-radius: 10px;
-    background: rgba(5, 22, 52, 0.9);
-    border: 1px solid rgba(72, 148, 255, 0.8);
-    box-shadow: 0 0 18px rgba(50, 142, 255, 0.35);
+    --el-color-primary: var(--ui-accent);
+    --el-bg-color-overlay: var(--ui-surface-strong);
+    --el-text-color-primary: var(--ui-text);
+    --el-text-color-regular: var(--ui-text-secondary);
+    --el-border-color: var(--ui-border);
 }
 </style>

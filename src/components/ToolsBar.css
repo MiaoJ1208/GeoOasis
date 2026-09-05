@@ -1,116 +1,158 @@
-/* btn heigth: 25px, root: padding: 10px -> total: 45px*/
-
-button {
-    all: unset;
-}
-
 .ToolbarRoot {
     display: flex;
-    padding: 8px 12px;
-    min-width:300px;
-    border-radius: 8px;
-    background: rgba(173, 216, 230, 0.9);
-    border: 1px solid rgba(135, 206, 235, 0.8);
-    box-shadow: 0 2px 12px rgba(70, 130, 180, 0.45);
-}
-
-.ToolbarToggleItem,
-.ToolbarButton {
-    flex: 0 0 auto;
-    color: #2c3e50;
-    height: 28px;
-    padding: 0 8px;
-    border-radius: 6px;
-    display: inline-flex;
-    font-size: 13px;
-    line-height: 1;
+    min-width: max-content;
     align-items: center;
-    justify-content: center;
     gap: 4px;
+    padding: 2px;
 }
 
-.ToolbarToggleItem[data-state="on"] {
-    background: rgba(61, 135, 255, 0.95);
-    color: #fff;
+.ToolbarRoot [role="group"] {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
 }
 
-.ToolbarToggleItem:hover,
-.ToolbarButton:hover {
-    background: rgba(77, 153, 255, 0.25);
-    color: #2c3e50;
-}
-
-.ToolbarToggleItem:focus,
-.ToolbarButton:focus {
-    position: relative;
-    box-shadow: 0 0 0 2px rgba(96, 166, 255, 0.7);
-}
-
-.ToolbarToggleItem {
-    background-color: var(--blue-1);
+.GizmoModeGroup {
     margin-left: 2px;
 }
 
-.ToolbarToggleItem:first-child {
-    margin-left: 0;
+.ToolbarToggleItem,
+.ToolbarButton,
+.ToolbarRoot .btn {
+    all: unset;
+    box-sizing: border-box;
+    display: inline-flex;
+    min-width: 36px;
+    height: 36px;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 0 10px;
+    border: 1px solid transparent;
+    border-radius: var(--ui-radius-sm);
+    color: var(--ui-text-secondary);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1;
+    cursor: pointer;
+    transition:
+        color var(--ui-transition),
+        border-color var(--ui-transition),
+        background-color var(--ui-transition),
+        transform var(--ui-transition);
+}
+
+.ToolbarToggleItem:hover,
+.ToolbarButton:hover,
+.ToolbarRoot .btn:hover {
+    border-color: var(--ui-border);
+    background: var(--ui-surface-hover);
+    color: var(--ui-text);
+}
+
+.ToolbarToggleItem:active,
+.ToolbarButton:active,
+.ToolbarRoot .btn:active {
+    transform: scale(0.97);
+}
+
+.ToolbarToggleItem:focus-visible,
+.ToolbarButton:focus-visible,
+.ToolbarRoot .btn:focus-visible {
+    outline: 2px solid #60a5fa;
+    outline-offset: 2px;
 }
 
 .ToolbarToggleItem[data-state="on"] {
-    background-color: var(--blue-6);
-    color: var(--blue-12);
+    border-color: var(--ui-border-strong);
+    background: var(--ui-accent-soft);
+    color: #bfdbfe;
+}
+
+.ToolbarToggleItem[data-disabled] {
+    cursor: not-allowed;
+    opacity: 0.45;
 }
 
 .ToolbarSeparator {
     width: 1px;
-    background-color: rgba(70, 130, 180, 0.4);
-    margin: 0 10px;
+    height: 24px;
+    margin: 0 4px;
+    background: var(--ui-border);
 }
 
-.ToolbarButton {
-    padding-left: 10px;
-    padding-right: 10px;
-    color: #2c3e50;
-    background: linear-gradient(135deg, rgba(173, 216, 230, 0.9), rgba(135, 206, 235, 0.8));
-    border: 1px solid rgba(70, 130, 180, 0.6);
-}
-
-.ToolbarButton:hover {
-    color: #fff;
-    background: linear-gradient(135deg, rgba(85, 168, 255, 0.92), rgba(35, 120, 232, 1));
+.ToolbarButton.history-button {
+    min-width: auto;
 }
 
 .ModelBar {
-    position: absolute;
-    margin-top: 10px;
-    padding: 10px;
-    min-width: max-content;
-    border-radius: 6px;
-    background: rgba(173, 216, 230, 0.95);
-    border: 1px solid rgba(135, 206, 235, 0.8);
-    box-shadow: 0 2px 12px rgba(70, 130, 180, 0.45);
+    position: fixed;
+    z-index: var(--ui-z-popover);
+    top: 78px;
+    left: 50%;
     display: flex;
+    max-width: calc(100vw - 32px);
     align-items: center;
-    justify-content: flex-start;
+    gap: 6px;
+    overflow-x: auto;
+    padding: 6px;
+    border: 1px solid var(--ui-border);
+    border-radius: var(--ui-radius);
+    background: var(--ui-surface-strong);
+    box-shadow: var(--ui-shadow);
+    transform: translateX(-50%);
 }
 
 .ModelBarItem {
-    margin: 0px 5px;
-    width: 60px;
-    height: 60px;
-    text-align: center;
-    line-height: 60px;
-    border-radius: 5px;
-    background-color: rgba(135, 206, 235, 0.8);
-    color: #2c3e50;
-    user-select: none;
+    all: unset;
+    box-sizing: border-box;
+    display: inline-flex;
+    min-width: 72px;
+    height: 42px;
+    align-items: center;
+    justify-content: center;
+    padding: 0 12px;
+    border: 1px solid var(--ui-border);
+    border-radius: var(--ui-radius-sm);
+    background: rgba(30, 41, 59, 0.72);
+    color: var(--ui-text-secondary);
+    font-family: "SFMono-Regular", Consolas, monospace;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--ui-transition);
 }
 
 .ModelBarItem:hover {
-    background-color: rgba(70, 130, 180, 0.8);
-    color: #fff;
+    border-color: var(--ui-border-strong);
+    background: var(--ui-surface-hover);
+    color: var(--ui-text);
 }
 
 .ModelBarItemActive {
-    background-color: rgba(61, 135, 255, 0.95);
-    color: #fff;
+    border-color: #60a5fa;
+    background: var(--ui-accent);
+    color: #ffffff;
+}
+
+@media (max-width: 920px) {
+    .ToolbarToggleItem,
+    .ToolbarButton,
+    .ToolbarRoot .btn {
+        min-width: 44px;
+        height: 44px;
+    }
+
+    .ToolbarButton.history-button {
+        min-width: 56px;
+    }
+
+    .ModelBar {
+        top: 70px;
+    }
+
+    .ModelBarItem {
+        height: 44px;
+    }
 }
