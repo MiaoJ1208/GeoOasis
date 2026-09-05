@@ -98,7 +98,7 @@ httpServer.listen(HTTP_PORT, () => {
 });
 
 // 启动 Hocuspocus WebSocket 服务器（用于协作）
-const hocuspocus = new Hocuspocus({
+new Hocuspocus({
     address: "0.0.0.0",
     port: HOCUSPOCUS_PORT,
     quiet: false
