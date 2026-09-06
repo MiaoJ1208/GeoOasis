@@ -1,5 +1,4 @@
 import { Cartesian3, Math as CesiumMath, Matrix3, Quaternion } from "cesium";
-import { storeToRefs } from "pinia";
 import { User } from "./useAwareness";
 import { useGeoOasisStore } from "../store/GeoOasis.store";
 

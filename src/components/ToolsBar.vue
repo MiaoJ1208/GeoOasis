@@ -9,7 +9,6 @@ import {
 } from "radix-vue";
 import ToolbarUploadButton from "./internals/UploadButton.vue";
 import Dialog from "./Dialog.vue";
-import ShareDialog from "./ShareDialog.vue";
 import { Icon } from "@iconify/vue";
 import { computed } from "vue";
 import { storeToRefs } from "pinia";
