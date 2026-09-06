@@ -148,11 +148,11 @@ export const useSetup = () => {
     let viewer: Viewer;
 
     watch(drawMode, () => {
-        activeTool.value =
-            drawMode.value === DrawMode.SPACE ? "default" : activeTool.value;
+        const isSpaceMode = drawMode.value === DrawMode.SPACE;
+        activeTool.value = isSpaceMode ? "default" : activeTool.value;
         if (gizmo) {
-            gizmo.show = drawMode.value === DrawMode.SPACE;
-            gizmo.disabled = !gizmo.show;
+            gizmo.disabled = !isSpaceMode;
+            gizmo.show = isSpaceMode && Boolean(gizmo.item);
         }
     });
 
@@ -182,7 +182,7 @@ export const useSetup = () => {
             ScreenSpaceEventType.RIGHT_CLICK
         );
         gizmo = new CesiumGizmo(viewer, {
-            show: drawMode.value === DrawMode.SPACE,
+            show: false,
             applyTransformation: false,
             disabled: true,
             onDragMoving: (e) => {

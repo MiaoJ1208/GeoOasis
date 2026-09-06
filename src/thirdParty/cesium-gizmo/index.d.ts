@@ -88,6 +88,9 @@ declare interface GizmoOptions {
 declare class CesiumGizmo {
     constructor(viewer: Viewer, options?: GizmoOptions);
     destroy(): void;
+    item?: {
+        modelMatrix: Matrix4;
+    };
     show: boolean;
     mode: GizmoMode;
     disabled: boolean;
