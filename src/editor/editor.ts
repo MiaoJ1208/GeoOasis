@@ -648,12 +648,22 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
                                         );
                                     },
                                     10,
-                                    10000
-                                ).then(() => {
-                                    this.viewer?.entities.remove(
-                                        boundingVolumeEntity
-                                    );
-                                });
+                                    10000,
+                                    () => this.layers.has(id)
+                                )
+                                    .then(() => {
+                                        if (boundingVolumeEntity) {
+                                            this.viewer?.entities.remove(
+                                                boundingVolumeEntity
+                                            );
+                                        }
+                                    })
+                                    .catch((retryError) => {
+                                        console.error(
+                                            `Failed to load 3D Tiles layer ${id} after retries:`,
+                                            retryError
+                                        );
+                                    });
                                 console.error(error);
                             }
                             break;
@@ -803,12 +813,17 @@ function renderBoundingVolume(tilesetjson: any, viewer: Viewer): Entity {
 async function retryAsync(
     functionToRetry: () => Promise<any>,
     maxRetries = 3,
-    delay = 1000
+    delay = 1000,
+    shouldContinue: () => boolean = () => true
 ) {
     async function retry(attempt: number) {
+        if (!shouldContinue()) return;
+
         try {
             return await functionToRetry();
         } catch (error) {
+            if (!shouldContinue()) return;
+
             if (attempt <= maxRetries) {
                 console.log(`Attempt ${attempt} failed. Retrying...`);
                 await new Promise((resolve) => setTimeout(resolve, delay));
