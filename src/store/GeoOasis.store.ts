@@ -39,10 +39,8 @@ export const useGeoOasisStore = defineStore("viewer", () => {
     const selectedTerrain = computed(() => options.terrain.value);
 
     const roomId = ref("");
-    const { userList, setUser, setUserPosition } = useAwareness(
-        editor.value,
-        roomId
-    );
+    const { userList, getUserName, setUser, setUserName, setUserPosition } =
+        useAwareness(editor.value, roomId);
 
     const activeTool = ref("default");
     const drawMode = ref(DrawMode.SURFACE);
@@ -73,7 +71,9 @@ export const useGeoOasisStore = defineStore("viewer", () => {
         gizmoMode,
         selectedModelIdx,
         assetsOption,
+        getUserName,
         setUser,
+        setUserName,
         setUserPosition,
         cursorPosition,
         isTrafficAnalysis
