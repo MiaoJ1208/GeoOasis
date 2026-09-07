@@ -15,7 +15,7 @@ const {
 
 <template>
     <div class="flyto-panel">
-        <h4>坐标定位</h4>
+        <h2>坐标定位</h2>
         <div class="coordinate-input-row">
             <div class="coordinate-input-group">
                 <Label class="LabelRoot" for="longitude">经度</Label>
@@ -23,6 +23,7 @@ const {
                     id="longitude"
                     class="Input"
                     type="number"
+                    inputmode="decimal"
                     step="any"
                     v-model="longitude"
                     placeholder="117.48463609349766"
@@ -35,6 +36,7 @@ const {
                     id="latitude"
                     class="Input"
                     type="number"
+                    inputmode="decimal"
                     step="any"
                     v-model="latitude"
                     placeholder="40.44651364265419"
@@ -47,6 +49,7 @@ const {
                     id="height"
                     class="Input"
                     type="number"
+                    inputmode="decimal"
                     step="any"
                     v-model="height"
                     placeholder="628"
@@ -57,11 +60,11 @@ const {
 
         <div class="coordinate-actions">
             <button class="fly-btn" @click="flyToCoordinates">
-                <Icon icon="material-symbols:location-on" />
+                <Icon icon="material-symbols:location-on-outline" />
                 定位
             </button>
             <button class="clear-btn" @click="clearInputs">
-                <Icon icon="material-symbols:clear" />
+                <Icon icon="material-symbols:close" />
                 清空
             </button>
         </div>
@@ -73,82 +76,82 @@ const {
 <style scoped>
 .flyto-panel {
     position: fixed;
-    right: 18px;
-    bottom: 18px;
-    width: min(320px, 90vw);
-    background: rgba(13, 29, 72, 0.95);
-    border: 1px solid rgba(50, 130, 255, 0.6);
-    border-radius: 12px;
+    z-index: var(--ui-z-panel);
+    right: 14px;
+    bottom: 14px;
+    width: 350px;
     padding: 14px;
-    box-shadow: 0 0 20px rgba(30, 144, 255, 0.35);
-    z-index: 999;
-    color: #e2f1ff;
+    border: 1px solid var(--ui-border);
+    border-radius: 12px;
+    background: var(--ui-surface);
+    box-shadow: var(--ui-shadow);
+    color: var(--ui-text-secondary);
 }
 
-.flyto-panel h4 {
-    margin: 0 0 8px;
-    color: #b8d8ff;
+.flyto-panel h2 {
+    margin: 0 0 10px;
+    color: var(--ui-text);
     font-size: 14px;
-    font-weight: 700;
+    font-weight: 600;
+    letter-spacing: 0.02em;
 }
 
 .coordinate-input-row {
     display: flex;
-    flex-wrap: wrap;
     gap: 8px;
-    justify-content: space-between;
 }
 
 .coordinate-input-group {
     margin: 0;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 5px;
     flex: 1;
-    min-width: 60px;
-    max-width: 90px;
-}
-
-@media (max-width: 500px) {
-    .coordinate-input-group {
-        min-width: 100%;
-        max-width: 100%;
-    }
+    min-width: 0;
 }
 
 .LabelRoot {
-    color: #9cc8ff;
+    color: var(--ui-text-muted);
     font-size: 12px;
+    font-weight: 500;
 }
 
 .Input {
     width: 100%;
-    border: 1px solid rgba(91, 135, 255, 0.45);
-    border-radius: 6px;
-    background: rgba(5, 21, 54, 0.8);
-    color: #f0f9ff;
-    padding: 6px 8px;
+    height: 40px;
+    min-width: 0;
+    padding: 0 9px;
+    border: 1px solid var(--ui-border);
+    border-radius: var(--ui-radius-sm);
+    background: rgba(2, 6, 23, 0.52);
+    color: var(--ui-text);
+    font-family: "SFMono-Regular", Consolas, monospace;
+    font-size: 12px;
     outline: none;
+    transition:
+        border-color var(--ui-transition),
+        box-shadow var(--ui-transition);
 }
 
 .Input:focus {
-    border-color: #58a6ff;
-    box-shadow: 0 0 0 2px rgba(63, 143, 255, 0.3);
+    border-color: #60a5fa;
+    box-shadow: 0 0 0 3px var(--ui-accent-soft);
 }
 
 .coordinate-actions {
     display: flex;
     gap: 8px;
-    margin-top: 10px;
+    margin-top: 12px;
 }
 
 .fly-btn,
 .clear-btn {
     flex: 1;
-    border: none;
-    border-radius: 6px;
-    padding: 8px 10px;
-    font-size: 12px;
+    min-height: 42px;
+    border: 1px solid transparent;
+    border-radius: var(--ui-radius-sm);
+    padding: 0 12px;
+    font-size: 13px;
     font-weight: 600;
     cursor: pointer;
     display: flex;
@@ -158,28 +161,53 @@ const {
 }
 
 .fly-btn {
-    background: linear-gradient(135deg, #1781ff, #44a1ff);
+    background: var(--ui-accent-strong);
     color: #fff;
 }
 
 .clear-btn {
-    background: rgba(80, 90, 120, 0.7);
-    color: #d7e5ff;
-    border: 1px solid rgba(90, 115, 160, 0.7);
+    border-color: var(--ui-border);
+    background: rgba(30, 41, 59, 0.78);
+    color: var(--ui-text-secondary);
 }
 
 .fly-btn:hover,
 .clear-btn:hover {
-    filter: brightness(1.08);
+    filter: brightness(1.12);
 }
 
 .error-message {
     margin-top: 10px;
-    background: rgba(255, 75, 75, 0.15);
-    color: #ffb9b9;
-    border: 1px solid rgba(255, 84, 84, 0.46);
-    border-radius: 6px;
-    padding: 6px 8px;
-    font-size: 11px;
+    padding: 8px 10px;
+    border: 1px solid rgba(248, 113, 113, 0.38);
+    border-radius: var(--ui-radius-sm);
+    background: rgba(248, 113, 113, 0.12);
+    color: #fecaca;
+    font-size: 12px;
+}
+
+@media (max-width: 920px) {
+    .flyto-panel {
+        right: 8px;
+        bottom: 8px;
+        width: 300px;
+    }
+
+    .fly-btn,
+    .clear-btn {
+        min-height: 44px;
+    }
+
+    .Input {
+        height: 44px;
+    }
+}
+
+@media (max-width: 620px) {
+    .flyto-panel {
+        right: 8px;
+        left: 8px;
+        width: auto;
+    }
 }
 </style>

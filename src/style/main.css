@@ -1,23 +1,108 @@
-@import '@radix-ui/colors/black-alpha.css';
-@import '@radix-ui/colors/mauve.css';
-@import '@radix-ui/colors/grass.css';
-@import '@radix-ui/colors/green.css';
-@import '@radix-ui/colors/blue.css';
+@import "@radix-ui/colors/black-alpha.css";
+@import "@radix-ui/colors/mauve.css";
+@import "@radix-ui/colors/grass.css";
+@import "@radix-ui/colors/green.css";
+@import "@radix-ui/colors/blue.css";
 
-html, body {
+:root {
+    color-scheme: dark;
+    font-synthesis: none;
+    --ui-bg: #0b1220;
+    --ui-surface: rgba(15, 23, 42, 0.92);
+    --ui-surface-strong: rgba(17, 27, 48, 0.97);
+    --ui-surface-hover: rgba(51, 65, 85, 0.72);
+    --ui-border: rgba(148, 163, 184, 0.22);
+    --ui-border-strong: rgba(96, 165, 250, 0.48);
+    --ui-text: #f8fafc;
+    --ui-text-secondary: #cbd5e1;
+    --ui-text-muted: #94a3b8;
+    --ui-accent: #3b82f6;
+    --ui-accent-strong: #2563eb;
+    --ui-accent-soft: rgba(59, 130, 246, 0.16);
+    --ui-danger: #f87171;
+    --ui-radius: 10px;
+    --ui-radius-sm: 7px;
+    --ui-shadow: 0 14px 36px rgba(2, 6, 23, 0.34);
+    --ui-transition: 180ms cubic-bezier(0.16, 1, 0.3, 1);
+    --ui-z-base-control: 990;
+    --ui-z-panel: 1000;
+    --ui-z-context-panel: 1010;
+    --ui-z-header: 1200;
+    --ui-z-popover: 1250;
+    --ui-z-modal: 3000;
+    --ui-z-modal-content: 3001;
+    --ui-z-menu: 3500;
+}
+
+html,
+body {
     margin: 0;
-    width: 100vw;
-    height: 100vh;
-    background: linear-gradient(145deg, #020f24 0%, #051632 50%, #0a244f 100%);
-    color: #dbecff;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: var(--ui-bg);
+    color: var(--ui-text);
+    font-family: Inter, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
 }
 
 #app {
-    width: 100vw;
-    height: 100vh;
-    background: transparent;
+    width: 100%;
+    height: 100%;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+button,
+[role="button"] {
+    cursor: pointer;
+    touch-action: manipulation;
+}
+
+button:focus-visible,
+[role="button"]:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+    outline: 2px solid #60a5fa;
+    outline-offset: 2px;
+}
+
+::selection {
+    background: rgba(59, 130, 246, 0.4);
+    color: #ffffff;
 }
 
 * {
-    font-family: "Segoe UI", "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148, 163, 184, 0.42) transparent;
+}
+
+*::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+*::-webkit-scrollbar-thumb {
+    border: 2px solid transparent;
+    border-radius: 999px;
+    background: rgba(148, 163, 184, 0.42);
+    background-clip: padding-box;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
 }

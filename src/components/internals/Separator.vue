@@ -8,9 +8,9 @@ import { Separator } from "radix-vue";
 
 <style lang="css" scoped>
 .SeparatorRoot {
-    background-color: var(--mauve-6);
     height: 1px;
     width: 100%;
-    margin: 5px 0;
+    margin: 10px 0;
+    background: var(--ui-border);
 }
 </style>
